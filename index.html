@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Islamic AI</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#f2f2f2;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.chat-container{
+    width:370px;
+    height:620px;
+    background:white;
+    border-radius:20px;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 0 20px rgba(0,0,0,0.15);
+}
+
+.header{
+    background:#0f3d3e;
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-weight:bold;
+    position:relative;
+}
+
+.clear-btn{
+    position:absolute;
+    right:10px;
+    top:10px;
+    background:red;
+    border:none;
+    color:white;
+    padding:5px 10px;
+    border-radius:15px;
+    cursor:pointer;
+    font-size:12px;
+}
+
+.chat-box{
+    flex:1;
+    padding:10px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+}
+
+.message{
+    margin:6px 0;
+    padding:8px 12px;
+    border-radius:15px;
+    max-width:80%;
+}
+
+.user{
+    background:#cce5ff;
+    align-self:flex-end;
+}
+
+.bot{
+    background:#e9ecef;
+    align-self:flex-start;
+}
+
+.input-area{
+    display:flex;
+    padding:10px;
+    border-top:1px solid #ddd;
+}
+
+input{
+    flex:1;
+    padding:8px;
+    border-radius:20px;
+    border:1px solid #ccc;
+    outline:none;
+}
+
+button{
+    margin-left:8px;
+    padding:8px 15px;
+    border:none;
+    background:#0f3d3e;
+    color:white;
+    border-radius:20px;
+    cursor:pointer;
+}
+
+#related-topics button {
+  margin: 5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: none;
+  background: #e0e0e0;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+<div class="header">
+<span style="font-size:18px;">🤖</span> Islamic AI Assistant
+<button class="clear-btn" onclick="clearChat()">Clear</button>
+</div>
+
+<div class="chat-box" id="chatBox"></div>
+
+<div class="input-area">
+<input type="text" id="userInput" placeholder="Ask something..." onkeypress="handleEnter(event)">
+<button onclick="sendMessage()">Send</button>
+</div>
+<div id="related-topics"></div>
+</div>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+const chatBox = document.getElementById("chatBox");
+
+window.onload = loadHistory;
+
+async function loadHistory(){
+    const res = await fetch("http://127.0.0.1:8000/history",{
+        headers:{
+            "Authorization":"Bearer " + localStorage.getItem("token")
+        }
+    });
+
+    if(res.status === 401){
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("token");
+        window.location.href="admin.html";
+        return;
+    }
+
+    const data = await res.json();
+    chatBox.innerHTML="";
+
+    data.history.forEach(item=>{
+        const userDiv=document.createElement("div");
+        userDiv.className="message user";
+        userDiv.innerText=item.question;
+        chatBox.appendChild(userDiv);
+
+        const botDiv=document.createElement("div");
+        botDiv.className="message bot";
+        botDiv.innerText=item.answer;
+        chatBox.appendChild(botDiv);
+    });
+
+    chatBox.scrollTop=chatBox.scrollHeight;
+}
+
+async function sendMessage(){
+    const input=document.getElementById("userInput");
+    const message=input.value.trim();
+    if(!message) return;
+
+    // Show user message instantly
+    const userDiv=document.createElement("div");
+    userDiv.className="message user";
+    userDiv.innerText=message;
+    chatBox.appendChild(userDiv);
+    chatBox.scrollTop=chatBox.scrollHeight;
+
+    input.value="";
+
+    const res=await fetch("https://islamic-ai-backend.onrender.com/chat/",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json",
+            "Authorization":"Bearer " + localStorage.getItem("token")
+        },
+        body:JSON.stringify({message:message})
+    });
+
+    if(res.status === 401){
+        alert("Session expired.");
+        localStorage.removeItem("token");
+        window.location.href="admin.html";
+        return;
+    }
+
+    const data=await res.json();
+
+    const botDiv=document.createElement("div");
+    botDiv.className="message bot";
+    botDiv.innerText=data.reply;
+    chatBox.appendChild(botDiv);
+
+    chatBox.scrollTop=chatBox.scrollHeight;
+}
+
+async function clearChat(){
+    await fetch("https://islamic-ai-backend.onrender.com/chat/",{
+        method:"DELETE",
+        headers:{
+            "Authorization":"Bearer " + localStorage.getItem("token")
+        }
+    });
+    loadHistory();
+}
+
+function handleEnter(e){
+    if(e.key === "Enter"){
+        sendMessage();
+    }
+}
+</script>
+
+</body>
+</html>
