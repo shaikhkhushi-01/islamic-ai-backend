@@ -460,7 +460,7 @@ def require_admin(current_user: dict = Depends(get_current_user)):
 def home():
     return {"message": "Islamic AI Startup Backend Running"}
 
-@app.post("/chat/")
+@app.post("/chat")
 def chat(data: Message, current_user: dict = Depends(get_current_user)):
 
     user_msg = data.message.strip()
