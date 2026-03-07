@@ -136,7 +136,7 @@ const chatBox = document.getElementById("chatBox");
 window.onload = loadHistory;
 
 async function loadHistory(){
-    const res = await fetch("http://127.0.0.1:8000/history",{
+    const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/history",{
         headers:{
             "Authorization":"Bearer " + localStorage.getItem("token")
         }
@@ -181,7 +181,7 @@ async function sendMessage(){
 
     input.value="";
 
-    const res=await fetch("https://islamic-ai-backend.onrender.com/chat/",{
+    const res=await fetch("https://islamic-ai-backend.onrender.com/chat",{
         method:"POST",
         headers:{
             "Content-Type":"application/json",
@@ -208,7 +208,7 @@ async function sendMessage(){
 }
 
 async function clearChat(){
-    await fetch("https://islamic-ai-backend.onrender.com/chat/",{
+    await fetch("https://islamic-ai-backend.onrender.com/chat",{
         method:"DELETE",
         headers:{
             "Authorization":"Bearer " + localStorage.getItem("token")
@@ -225,4 +225,5 @@ function handleEnter(e){
 </script>
 
 </body>
+
 </html>
