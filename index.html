@@ -138,7 +138,7 @@ window.onload = loadHistory;
 async function loadHistory(){
     const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/history",{
         headers:{
-            "Authorization":"Bearer " + localStorage.getItem("token")
+            "Authorization":"Bearer " + token
         }
     });
 
@@ -150,6 +150,7 @@ async function loadHistory(){
     }
 
     const data = await res.json();
+    console.log(data);
     chatBox.innerHTML="";
 
     data.history.forEach(item=>{
@@ -181,14 +182,15 @@ async function sendMessage(){
 
     input.value="";
 
-    const res=await fetch("https://islamic-ai-backend.onrender.com/chat",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json",
-            "Authorization":"Bearer " + localStorage.getItem("token")
-        },
-        body:JSON.stringify({message:message})
-    });
+
+const res=await fetch("https://islamic-ai-backend-b4z6.onrender.com/chat",{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer " + token
+    },
+    body:JSON.stringify({message:message})
+});
 
     if(res.status === 401){
         alert("Session expired.");
@@ -197,23 +199,34 @@ async function sendMessage(){
         return;
     }
 
-    const data=await res.json();
+    if(!res.ok){
+    const botDiv=document.createElement("div");
+    botDiv.className="message bot";
+    botDiv.innerText="Server waking up... please try again.";
+    chatBox.appendChild(botDiv);
+    return;
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+    const data = await res.json();
+    console.log(data);
 
     const botDiv=document.createElement("div");
     botDiv.className="message bot";
-    botDiv.innerText=data.reply;
+    botDiv.innerText = data.reply || data.answer || data.response || data.message || "No response";
     chatBox.appendChild(botDiv);
 
     chatBox.scrollTop=chatBox.scrollHeight;
 }
 
 async function clearChat(){
-    await fetch("https://islamic-ai-backend.onrender.com/chat",{
-        method:"DELETE",
-        headers:{
-            "Authorization":"Bearer " + localStorage.getItem("token")
-        }
-    });
+    await fetch("https://islamic-ai-backend-b4z6.onrender.com/clear",{
+method:"DELETE",
+headers:{
+"Authorization":"Bearer " + token
+}
+});
     loadHistory();
 }
 
@@ -225,5 +238,4 @@ function handleEnter(e){
 </script>
 
 </body>
-
 </html>
