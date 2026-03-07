@@ -67,43 +67,44 @@ async function addData() {
 
 async function login(){
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
 
-    if(!email || !password){
-        alert("Enter email & password");
-        return;
-    }
+if(!email || !password){
+alert("Enter email & password");
+return;
+}
 
-    const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/login",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/x-www-form-urlencoded"
-        },
-        body:new URLSearchParams({
-            username: email,
-            password: password
-        })
-    });
+const formData = new URLSearchParams();
+formData.append("username", email);
+formData.append("password", password);
 
-    const data = await res.json();
+const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/login",{
+method:"POST",
+headers:{
+"Content-Type":"application/x-www-form-urlencoded"
+},
+body: formData
+});
 
-    if(res.status !== 200){
-        alert("Login failed");
-        return;
-    }
+const data = await res.json();
 
-    // ✅ SAVE TOKEN FIRST
-    localStorage.setItem("token", data.access_token);
+console.log("STATUS:", res.status);
+console.log("DATA:", data);
 
-    alert("Login Successful");
+if(res.status !== 200){
+alert("Login failed");
+return;
+}
 
-    // ✅ THEN REDIRECT
-    window.location.href = "index.html";
+localStorage.setItem("token", data.access_token);
+
+alert("Login Successful");
+
+window.location.href = "index.html";
 }
 
 </script>
 
 </body>
-
 </html>
