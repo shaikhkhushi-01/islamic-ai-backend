@@ -106,6 +106,7 @@ button{
   background: #e0e0e0;
   cursor: pointer;
 }
+
 </style>
 </head>
 
@@ -123,6 +124,7 @@ button{
 <div class="input-area">
 <input type="text" id="userInput" placeholder="Ask something..." onkeypress="handleEnter(event)">
 <button onclick="sendMessage()">Send</button>
+<button onclick="startVoice()">🎤</button>
 </div>
 <div id="related-topics"></div>
 </div>
@@ -220,6 +222,12 @@ const res=await fetch("https://islamic-ai-backend-b4z6.onrender.com/chat",{
     chatBox.scrollTop=chatBox.scrollHeight;
 }
 
+const data = await res.json();
+
+addMessage("bot", data.text);
+
+speak(data.text);
+
 async function clearChat(){
     await fetch("https://islamic-ai-backend-b4z6.onrender.com/clear",{
 method:"DELETE",
@@ -235,6 +243,42 @@ function handleEnter(e){
         sendMessage();
     }
 }
+
+function startVoice(){
+
+const recognition = new webkitSpeechRecognition()
+
+recognition.lang = "en-US"
+
+recognition.onresult = function(e){
+
+document.getElementById("userInput").value =
+e.results[0][0].transcript
+
+sendMessage()
+
+}
+
+recognition.start()
+
+}
+
+function speak(text){
+
+const speech = new SpeechSynthesisUtterance();
+
+speech.text = text;
+
+speech.lang = "en-US";
+
+speech.rate = 1;
+
+speech.pitch = 1;
+
+window.speechSynthesis.speak(speech);
+
+}
+
 </script>
 
 </body>
