@@ -235,6 +235,17 @@ Even Prophet Muhammad ﷺ faced sadness (Year of Sorrow).
 
     conn.commit()
     conn.close()
+    
+def clean_query(text):
+
+    text = text.lower()
+
+    remove = ["why","what","is","the","do","we","tell","me","about"]
+
+    for r in remove:
+        text = text.replace(r,"")
+
+    return text.strip()
 
 def search_quran(user_msg):
 
@@ -724,11 +735,28 @@ def islamic_ai_engine(user_msg, session_id):
     # 1️⃣ Quran search
     quran = search_quran(user_msg)
 
+    if quran:
+      return {
+        "text": quran,
+        "related":[]
+    }
     # 2️⃣ Hadith search
     hadith = search_hadith(user_msg)
 
+    if hadith:
+        return {
+            "text": hadith,
+            "related":[]
+        }
+
     # 3️⃣ Knowledge search
     knowledge = search_database(user_msg, session_id)
+
+    if knowledge:
+        return {
+            "text": knowledge,
+            "related":[]
+        }
 
     answer = ""
 
