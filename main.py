@@ -75,38 +75,40 @@ def init_db():
     )
 """)
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS quran (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    surah INTEGER,
-    ayah INTEGER,
-    text TEXT,
-    translation TEXT,
-    topic TEXT
-)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS quran (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        surah INTEGER,
+        ayah INTEGER,
+        text TEXT,
+        translation TEXT,
+        topic TEXT
+    )
+""")
+    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS hadith (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        book TEXT,
+        number INTEGER,
+        text TEXT,
+        topic TEXT
+    )
 """)
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS hadith (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    book TEXT,
-    number INTEGER,
-    text TEXT,
-    topic TEXT
-)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tafsir (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        surah INTEGER,
+        ayah INTEGER,
+        explanation TEXT
+    )
 """)
 
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS tafsir (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    surah INTEGER,
-    ayah INTEGER,
-    explanation TEXT
-)
-""")
 
-conn.commit()
-conn.close()
+
+    conn.commit()
+    conn.close()
 
 app = FastAPI()
 
@@ -253,7 +255,6 @@ def search_quran(user_msg):
     for surah, ayah, text, translation in rows:
 
         text_lower = text.lower()
-
         score = sum(word in text_lower for word in words)
 
         if score > best_score:
@@ -266,7 +267,9 @@ def search_quran(user_msg):
 
         surah, ayah, text, translation = best_match
 
-        return f"""
+        tafsir = search_tafsir(surah, ayah)
+
+        result = f"""
 📖 Quran {surah}:{ayah}
 
 {text}
@@ -275,11 +278,12 @@ Meaning:
 {translation}
 """
 
-    return None
-tafsir = search_tafsir(surah, ayah)
+        if tafsir:
+            result += f"\n\n📖 Tafsir:\n{tafsir}"
 
-if tafsir:
-    result += f"\n\n📖 Tafsir:\n{tafsir}"
+        return result
+
+    return None
 
 def seed_hadith():
 
@@ -416,36 +420,6 @@ def find_best_match(user_msg, topics):
         if match:
             return match[0]
 
-    return None
-
-def search_quran(user_msg):
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    user_msg = user_msg.lower()
-
-    cursor.execute(
-        "SELECT surah, ayah, text, translation, topic FROM quran"
-    )
-
-    rows = cursor.fetchall()
-
-    for surah, ayah, text, translation, topic in rows:
-
-        if topic in user_msg:
-
-            conn.close()
-
-            return f"""
-📖 Quran {surah}:{ayah}
-
-{text}
-
-Meaning:
-{translation}
-"""
-    conn.close()
     return None
 
 def search_database(user_msg, session_id):
@@ -645,6 +619,55 @@ def clean_text(text):
         text = text.replace(r, "")
 
     return text.strip()
+def search_hadith(user_msg):
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    user_msg = user_msg.lower()
+
+    cursor.execute("SELECT book, number, text, topic FROM hadith")
+
+    rows = cursor.fetchall()
+
+    for book, number, text, topic in rows:
+
+        if topic in user_msg:
+
+            conn.close()
+
+            return f"""
+📚 Hadith ({book} {number})
+
+{text}
+"""
+
+    conn.close()
+    return None
+def seed_quran():
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id FROM quran LIMIT 1")
+
+    if cursor.fetchone():
+        conn.close()
+        return
+
+    sample = [
+        (2,183,"O you who believe, fasting is prescribed for you","Fasting is obligatory","fasting"),
+        (94,5,"Indeed with hardship comes ease","Allah promises ease after hardship","patience")
+    ]
+
+    for surah, ayah, text, translation, topic in sample:
+        cursor.execute(
+        "INSERT INTO quran (surah, ayah, text, translation, topic) VALUES (?,?,?,?,?)",
+        (surah, ayah, text, translation, topic)
+        )
+
+    conn.commit()
+    conn.close()
 # ================= ROUTES =================
 
 @app.get("/")
@@ -688,12 +711,13 @@ def chat(data: Message, current_user: dict = Depends(get_current_user)):
     conn.commit()
     conn.close()
 
+    reply = translate_text(reply, "en")
+
+
     return {
         "reply": reply,
         "related_topics": related
     }
-
-reply = translate_text(reply, "en")
 
 def islamic_ai_engine(user_msg, session_id):
 
@@ -861,6 +885,7 @@ def startup_event():
     cursor = conn.cursor()
 
     cursor.execute("SELECT id FROM users WHERE email=?", ("admin@gmail.com",))
+
     if not cursor.fetchone():
         hashed_pw = hash_password("123456")
         cursor.execute(
@@ -868,4 +893,5 @@ def startup_event():
             ("admin", "admin@gmail.com", hashed_pw, "admin")
         )
         conn.commit()
-        conn.close()
+
+    conn.close()
