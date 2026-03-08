@@ -132,67 +132,69 @@ button{
 <script>
 
 const token = localStorage.getItem("token");
-
 const chatBox = document.getElementById("chatBox");
 
 window.onload = loadHistory;
 
 async function loadHistory(){
-    const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/history",{
-        headers:{
-            "Authorization":"Bearer " + token
+    try{
+        const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/history",{
+            headers:{
+                "Authorization":"Bearer " + token
+            }
+        });
+
+        if(res.status === 401){
+            alert("Session expired. Please login again.");
+            localStorage.removeItem("token");
+            window.location.href="admin.html";
+            return;
         }
-    });
 
-    if(res.status === 401){
-        alert("Session expired. Please login again.");
-        localStorage.removeItem("token");
-        window.location.href="admin.html";
-        return;
+        const data = await res.json();
+        chatBox.innerHTML="";
+
+        data.history.forEach(item=>{
+            addMessage("user", item.question);
+            addMessage("bot", item.answer);
+        });
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+    }catch(err){
+        console.log(err);
     }
+}
 
-    const data = await res.json();
-    console.log(data);
-    chatBox.innerHTML="";
-
-    data.history.forEach(item=>{
-        const userDiv=document.createElement("div");
-        userDiv.className="message user";
-        userDiv.innerText=item.question;
-        chatBox.appendChild(userDiv);
-
-        const botDiv=document.createElement("div");
-        botDiv.className="message bot";
-        botDiv.innerText=item.answer;
-        chatBox.appendChild(botDiv);
-    });
-
-    chatBox.scrollTop=chatBox.scrollHeight;
+function addMessage(type,text){
+    const div=document.createElement("div");
+    div.className="message " + type;
+    div.innerText=text;
+    chatBox.appendChild(div);
 }
 
 async function sendMessage(){
+
     const input=document.getElementById("userInput");
     const message=input.value.trim();
+
     if(!message) return;
 
-    // Show user message instantly
-    const userDiv=document.createElement("div");
-    userDiv.className="message user";
-    userDiv.innerText=message;
-    chatBox.appendChild(userDiv);
+    addMessage("user",message);
     chatBox.scrollTop=chatBox.scrollHeight;
 
     input.value="";
 
+    try{
 
-const res=await fetch("https://islamic-ai-backend-b4z6.onrender.com/chat",{
-    method:"POST",
-    headers:{
-        "Content-Type":"application/json",
-        "Authorization":"Bearer " + token
-    },
-    body:JSON.stringify({message:message})
-});
+    const res=await fetch("https://islamic-ai-backend-b4z6.onrender.com/chat",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json",
+            "Authorization":"Bearer " + token
+        },
+        body:JSON.stringify({message:message})
+    });
 
     if(res.status === 401){
         alert("Session expired.");
@@ -202,35 +204,37 @@ const res=await fetch("https://islamic-ai-backend-b4z6.onrender.com/chat",{
     }
 
     if(!res.ok){
-    const botDiv=document.createElement("div");
-    botDiv.className="message bot";
-    botDiv.innerText="Server waking up... please try again.";
-    chatBox.appendChild(botDiv);
-
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    return;
-}
+        addMessage("bot","Server waking up... please try again.");
+        return;
+    }
 
     const data = await res.json();
-    console.log(data);
 
-    const botDiv=document.createElement("div");
-    botDiv.className="message bot";
-    botDiv.innerText = data.reply || data.answer || data.response || data.message || "No response";
-    chatBox.appendChild(botDiv);
-    speak(botDiv.innerText);
+    const reply = data.reply || data.answer || data.response || data.message || "No response";
+
+    addMessage("bot",reply);
+
+    speak(reply);
+
     chatBox.scrollTop=chatBox.scrollHeight;
+
+    }catch(err){
+
+        addMessage("bot","Connection error. Try again.");
+
+    }
 }
 
 async function clearChat(){
+
     await fetch("https://islamic-ai-backend-b4z6.onrender.com/clear",{
-method:"DELETE",
-headers:{
-"Authorization":"Bearer " + token
-}
-});
-    loadHistory();
+        method:"DELETE",
+        headers:{
+            "Authorization":"Bearer " + token
+        }
+    });
+
+    chatBox.innerHTML="";
 }
 
 function handleEnter(e){
@@ -241,40 +245,42 @@ function handleEnter(e){
 
 function startVoice(){
 
-const recognition = new webkitSpeechRecognition()
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-recognition.lang = "en-US"
+    if(!SpeechRecognition){
+        alert("Voice recognition not supported in this browser");
+        return;
+    }
 
-recognition.onresult = function(e){
+    const recognition = new SpeechRecognition();
 
-document.getElementById("userInput").value =
-e.results[0][0].transcript
+    recognition.lang="en-US";
 
-sendMessage()
+    recognition.onresult=function(e){
 
-}
+        const text=e.results[0][0].transcript;
 
-recognition.start()
+        document.getElementById("userInput").value=text;
 
+        sendMessage();
+    }
+
+    recognition.start();
 }
 
 function speak(text){
 
-const speech = new SpeechSynthesisUtterance();
+    if(!window.speechSynthesis) return;
 
-speech.text = text;
+    const speech=new SpeechSynthesisUtterance(text);
 
-speech.lang = "en-US";
+    speech.lang="en-US";
 
-speech.rate = 1;
-
-speech.pitch = 1;
-
-window.speechSynthesis.speak(speech);
-
+    window.speechSynthesis.speak(speech);
 }
 
 </script>
 
 </body>
 </html>
+
