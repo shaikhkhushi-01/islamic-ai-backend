@@ -75,8 +75,38 @@ def init_db():
     )
 """)
 
-    conn.commit()
-    conn.close()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS quran (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    surah INTEGER,
+    ayah INTEGER,
+    text TEXT,
+    translation TEXT,
+    topic TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS hadith (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    book TEXT,
+    number INTEGER,
+    text TEXT,
+    topic TEXT
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS tafsir (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    surah INTEGER,
+    ayah INTEGER,
+    explanation TEXT
+)
+""")
+
+conn.commit()
+conn.close()
 
 app = FastAPI()
 
@@ -204,6 +234,91 @@ Even Prophet Muhammad ﷺ faced sadness (Year of Sorrow).
     conn.commit()
     conn.close()
 
+def search_quran(user_msg):
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    words = user_msg.lower().split()
+
+    cursor.execute(
+        "SELECT surah, ayah, text, translation FROM quran"
+    )
+
+    rows = cursor.fetchall()
+
+    best_match = None
+    best_score = 0
+
+    for surah, ayah, text, translation in rows:
+
+        text_lower = text.lower()
+
+        score = sum(word in text_lower for word in words)
+
+        if score > best_score:
+            best_score = score
+            best_match = (surah, ayah, text, translation)
+
+    conn.close()
+
+    if best_match:
+
+        surah, ayah, text, translation = best_match
+
+        return f"""
+📖 Quran {surah}:{ayah}
+
+{text}
+
+Meaning:
+{translation}
+"""
+
+    return None
+tafsir = search_tafsir(surah, ayah)
+
+if tafsir:
+    result += f"\n\n📖 Tafsir:\n{tafsir}"
+
+def seed_hadith():
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    hadith_data = [
+
+        ("Bukhari",1,
+        "Actions are judged by intentions",
+        "intention"),
+
+        ("Muslim",32,
+        "Allah does not look at your appearance but at your hearts",
+        "heart"),
+
+        ("Bukhari",6114,
+        "The strong person is the one who controls anger",
+        "anger")
+
+    ]
+
+    for book, number, text, topic in hadith_data:
+
+        cursor.execute(
+        "SELECT id FROM hadith WHERE book=? AND number=?",
+        (book,number)
+        )
+
+        if not cursor.fetchone():
+
+            cursor.execute(
+            "INSERT INTO hadith (book, number, text, topic) VALUES (?,?,?,?)",
+            (book,number,text,topic)
+            )
+
+    conn.commit()
+    conn.close()
+
 # ================= INTENT DETECTION =================
 
 def detect_intent(text):
@@ -303,6 +418,36 @@ def find_best_match(user_msg, topics):
 
     return None
 
+def search_quran(user_msg):
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    user_msg = user_msg.lower()
+
+    cursor.execute(
+        "SELECT surah, ayah, text, translation, topic FROM quran"
+    )
+
+    rows = cursor.fetchall()
+
+    for surah, ayah, text, translation, topic in rows:
+
+        if topic in user_msg:
+
+            conn.close()
+
+            return f"""
+📖 Quran {surah}:{ayah}
+
+{text}
+
+Meaning:
+{translation}
+"""
+    conn.close()
+    return None
+
 def search_database(user_msg, session_id):
 
     conn = sqlite3.connect(DB_PATH)
@@ -374,7 +519,7 @@ def search_database(user_msg, session_id):
                     "related": related
                 }
 
-    # ✅ Memory fallback
+# Memory fallback
     last_topic = get_memory(session_id)
 
     if last_topic:
@@ -391,6 +536,16 @@ def search_database(user_msg, session_id):
                 "text": detailed if detailed else content,
                 "related": []
             }
+
+    # Quran fallback search
+    quran_result = search_quran(user_msg)
+
+    if quran_result:
+        conn.close()
+        return {
+            "text": quran_result,
+            "related": []
+        }
 
     conn.close()
     return None
@@ -455,6 +610,41 @@ def require_admin(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
+from deep_translator import GoogleTranslator
+
+def translate_text(text, target="en"):
+
+    try:
+        translated = GoogleTranslator(source='auto', target=target).translate(text)
+        return translated
+    except:
+        return text
+    
+def search_tafsir(surah, ayah):
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT explanation FROM tafsir WHERE surah=? AND ayah=?",
+        (surah, ayah)
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    return row[0] if row else None
+
+def clean_text(text):
+
+    text = text.lower()
+
+    remove = ["why", "what", "is", "the", "tell", "me", "about"]
+
+    for r in remove:
+        text = text.replace(r, "")
+
+    return text.strip()
 # ================= ROUTES =================
 
 @app.get("/")
@@ -465,12 +655,14 @@ def home():
 def chat(data: Message, current_user: dict = Depends(get_current_user)):
 
     user_msg = data.message.strip()
+    user_msg = translate_text(user_msg, "en")
+    user_msg = clean_text(user_msg)
 
     if not user_msg:
         return {"reply": "Please ask something meaningful."}
 
     session_id = str(current_user["id"])
-    result = search_database(user_msg, session_id)
+    result = islamic_ai_engine(user_msg, session_id)
 
     if not result:
         return {"reply": "🤖 I do not have detailed information yet."}
@@ -499,6 +691,38 @@ def chat(data: Message, current_user: dict = Depends(get_current_user)):
     return {
         "reply": reply,
         "related_topics": related
+    }
+
+reply = translate_text(reply, "en")
+
+def islamic_ai_engine(user_msg, session_id):
+
+    # 1️⃣ Quran search
+    quran = search_quran(user_msg)
+
+    # 2️⃣ Hadith search
+    hadith = search_hadith(user_msg)
+
+    # 3️⃣ Knowledge search
+    knowledge = search_database(user_msg, session_id)
+
+    answer = ""
+
+    if quran:
+        answer += quran + "\n\n"
+
+    if hadith:
+        answer += hadith + "\n\n"
+
+    if knowledge:
+        answer += knowledge["text"]
+
+    if answer.strip() == "":
+        return None
+
+    return {
+        "text": answer,
+        "related": knowledge["related"] if knowledge else []
     }
 
 @app.get("/history")
@@ -629,6 +853,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 def startup_event():
     init_db()
     seed_data()
+    seed_quran()
+    seed_hadith()
 
     # 🔥 AUTO CREATE ADMIN IF NOT EXISTS
     conn = sqlite3.connect(DB_PATH)
