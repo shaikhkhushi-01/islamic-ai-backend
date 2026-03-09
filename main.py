@@ -143,19 +143,15 @@ def clean_text(text):
         text = text.replace(r,"")
 
     return text.strip()
-
 def search_quran(user_msg):
 
-    print("Searching Quran for:", user_msg)
-    print("BEST SCORE:", best_score)
-    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     words = user_msg.lower().split()
 
     cursor.execute(
-        "SELECT surah, ayah, text, translation FROM quran"
+        "SELECT surah, ayah, text, translation, topic FROM quran"
     )
 
     rows = cursor.fetchall()
@@ -163,7 +159,7 @@ def search_quran(user_msg):
     best_match = None
     best_score = 0
 
-    for surah, ayah, text, translation in rows:
+    for surah, ayah, text, translation, topic in rows:
 
         searchable = (text + " " + translation + " " + topic).lower()
 
