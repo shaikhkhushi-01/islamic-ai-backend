@@ -31,7 +31,7 @@ for surah in data:
 
         cursor.execute(
         "INSERT INTO quran (surah, ayah, text, translation, topic) VALUES (?,?,?,?,?)",
-        (surah_no, ayah_no, text, text, "")
+        (surah_no, ayah_no, text, verse.get("translation",""), "")
         )
 
 conn.commit()
