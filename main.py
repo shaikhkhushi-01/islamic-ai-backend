@@ -133,11 +133,11 @@ def seed_data():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-def clean_query(text):
+def clean_text(text):
 
     text = text.lower()
 
-    remove = ["why","what","is","the","do","we","tell","me","about"]
+    remove = ["why","what","is","the","tell","me","about","do","muslims"]
 
     for r in remove:
         text = text.replace(r,"")
@@ -147,7 +147,8 @@ def clean_query(text):
 def search_quran(user_msg):
 
     print("Searching Quran for:", user_msg)
-
+    print("BEST SCORE:", best_score)
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -164,7 +165,7 @@ def search_quran(user_msg):
 
     for surah, ayah, text, translation in rows:
 
-        searchable = (text + " " + translation).lower()
+        searchable = (text + " " + translation + " " + topic).lower()
 
         score = sum(word in searchable for word in words)
 
