@@ -596,6 +596,35 @@ def chat(data: Message, current_user: dict = Depends(get_current_user)):
         return {"reply": "Please ask something meaningful."}
 
     session_id = str(current_user["id"])
+
+    # 🔎 Quran search FIRST
+    quran_result = search_quran(user_msg)
+
+    if quran_result:
+
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO chat_history (user_id, question, answer, intent, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        """, (
+            current_user["id"],
+            user_msg,
+            quran_result,
+            "quran",
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ))
+
+        conn.commit()
+        conn.close()
+
+        return {
+            "reply": quran_result,
+            "related_topics": []
+        }
+
+    # 🧠 AI engine (existing system)
     result = islamic_ai_engine(user_msg, session_id)
 
     if not result:
@@ -611,19 +640,18 @@ def chat(data: Message, current_user: dict = Depends(get_current_user)):
     cursor.execute("""
     INSERT INTO chat_history (user_id, question, answer, intent, created_at)
     VALUES (?, ?, ?, ?, ?)
-""", (
-    current_user["id"],
-    user_msg,
-    reply,
-    "knowledge",
-    datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-))
+    """, (
+        current_user["id"],
+        user_msg,
+        reply,
+        "knowledge",
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ))
 
     conn.commit()
     conn.close()
 
     reply = translate_text(reply, "en")
-
 
     return {
         "reply": reply,
