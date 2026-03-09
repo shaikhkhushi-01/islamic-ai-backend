@@ -163,7 +163,7 @@ def search_quran(user_msg):
 
     for surah, ayah, text, translation, topic in rows:
 
-        searchable = (text + " " + translation + " " + topic).lower()
+        searchable = f"{text or ''} {translation or ''} {topic or ''}".lower()
 
         score = sum(word in searchable for word in words)
 
@@ -194,7 +194,6 @@ Meaning:
         return result
 
     return None
-
 def seed_hadith():
 
     conn = sqlite3.connect(DB_PATH)
@@ -435,7 +434,10 @@ def search_database(user_msg, session_id):
     return None
 
 def hash_password(password: str):
-    return pwd_context.hash(password)
+    try:
+        return pwd_context.hash(password)
+    except:
+        return pwd_context.hash(password[:72])
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -523,7 +525,7 @@ def clean_text(text):
 
     text = text.lower()
 
-    remove = ["why", "what", "is", "the", "tell", "me", "about"]
+    remove = ["why", "what", "is", "the", "tell", "me", "about", "do", "muslims"]
 
     for r in remove:
         text = text.replace(r, "")
