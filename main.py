@@ -145,6 +145,8 @@ def clean_text(text):
     return text.strip()
 def search_quran(user_msg):
 
+    print("🔍 SEARCH_QURAN CALLED:", user_msg)
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
