@@ -105,6 +105,16 @@ def init_db():
     )
 """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS quran (
+        INTEGER PRIMARY KEY AUTOINCREMENT,
+        surah INTEGER,
+        ayah INTEGER,
+        arabic TEXT,
+        english TEXT
+    )
+""")
+
 
 
     conn.commit()
@@ -150,7 +160,7 @@ def search_quran(user_msg):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    words = user_msg.lower().split()
+    words = [w for w in user_msg.lower().split() if len(w) > 2]
 
     cursor.execute(
         "SELECT surah, ayah, text, translation, topic FROM quran"
@@ -158,8 +168,7 @@ def search_quran(user_msg):
 
     rows = cursor.fetchall()
 
-    best_match = None
-    best_score = 0
+    matches = []
 
     for surah, ayah, text, translation, topic in rows:
 
@@ -167,19 +176,23 @@ def search_quran(user_msg):
 
         score = sum(word in searchable for word in words)
 
-        if score > best_score:
-            best_score = score
-            best_match = (surah, ayah, text, translation)
+        if score > 0:
+            matches.append((score, surah, ayah, text, translation))
 
     conn.close()
 
-    if best_match and best_score > 0:
+    if matches:
 
-        surah, ayah, text, translation = best_match
+        # Best matches first
+        matches.sort(reverse=True)
 
-        tafsir = search_tafsir(surah, ayah)
+        result = ""
 
-        result = f"""
+        for score, surah, ayah, text, translation in matches[:3]:
+
+            tafsir = search_tafsir(surah, ayah)
+
+            result += f"""
 📖 Quran {surah}:{ayah}
 
 {text}
@@ -188,12 +201,15 @@ Meaning:
 {translation}
 """
 
-        if tafsir:
-            result += f"\n\n📖 Tafsir:\n{tafsir}"
+            if tafsir:
+                result += f"\n📖 Tafsir:\n{tafsir}\n"
+
+            result += "\n-------------------\n"
 
         return result
 
     return None
+
 def seed_hadith():
 
     conn = sqlite3.connect(DB_PATH)
