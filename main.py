@@ -141,6 +141,19 @@ def clean_text(text):
         text = text.replace(r,"")
 
     return text.strip()
+
+    import pickle
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+with open("quran_embeddings.pkl","rb") as f:
+    quran_data = pickle.load(f)
+
+rows = quran_data["rows"]
+embeddings = quran_data["embeddings"]
+
 def search_quran(user_msg):
 
     print("🔍 SEARCH_QURAN CALLED:", user_msg)
