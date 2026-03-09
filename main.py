@@ -105,18 +105,6 @@ def init_db():
     )
 """)
 
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS quran (
-        INTEGER PRIMARY KEY AUTOINCREMENT,
-        surah INTEGER,
-        ayah INTEGER,
-        arabic TEXT,
-        english TEXT
-    )
-""")
-
-
-
     conn.commit()
     conn.close()
 
@@ -850,7 +838,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 def startup_event():
     init_db()
     seed_data()
-    seed_quran()
     seed_hadith()
 
     # 🔥 AUTO CREATE ADMIN IF NOT EXISTS
