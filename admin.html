@@ -3,26 +3,108 @@
 <head>
     <title>Admin Panel - Islamic AI</title>
     <meta charset="UTF-8">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            background: #2ecc71;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #27ae60;
+        }
+
+        .login-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .status {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .label {
+            font-weight: 600;
+            margin-top: 15px;
+            display: block;
+            color: #34495e;
+        }
+    </style>
 </head>
-<body style="font-family: Arial; padding: 40px;">
 
-    <h2>🛠 Admin Panel - Add Islamic Knowledge</h2>
+<body>
 
+<div class="container">
+
+    <h2>🛠 Admin Panel - Islamic AI</h2>
+
+    <label class="label">Admin Password</label>
     <input type="password" id="adminPass" placeholder="Enter admin password">
-    <br><br>
 
-    <textarea id="newText" rows="5" cols="60" placeholder="Enter Islamic knowledge here..."></textarea>
-    <br><br>
+    <label class="label">Add Islamic Knowledge</label>
+    <textarea id="newText" rows="5" placeholder="Enter Islamic knowledge here..."></textarea>
 
-    <button onclick="addData()">Add Data</button>
+    <button onclick="addData()">➕ Add Data</button>
 
-    <p id="status"></p>
+    <p id="status" class="status"></p>
 
-    <hr><br>
+    <div class="login-section">
 
-    <input type="text" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="login()">Login</button>
+        <h3 style="text-align:center;">🔐 Admin Login</h3>
+
+        <input type="text" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+
+        <button onclick="login()">Login</button>
+
+    </div>
+
+</div>
 
 <script>
 
@@ -46,14 +128,14 @@ async function addData() {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": "Bearer " + token   // 🔥 THIS IS IMPORTANT
+            "Authorization": "Bearer " + token
         },
         body: new URLSearchParams({
-    topic: "custom",
-    content: text,
-    detailed: "",
-    reference: ""
-})
+            topic: "custom",
+            content: text,
+            detailed: "",
+            reference: ""
+        })
     });
 
     if(response.status === 401){
@@ -67,41 +149,38 @@ async function addData() {
 
 async function login(){
 
-const email = document.getElementById("email").value;
-const password = document.getElementById("password").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-if(!email || !password){
-alert("Enter email & password");
-return;
-}
+    if(!email || !password){
+        alert("Enter email & password");
+        return;
+    }
 
-const formData = new URLSearchParams();
-formData.append("username", email);
-formData.append("password", password);
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
 
-const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/login",{
-method:"POST",
-headers:{
-"Content-Type":"application/x-www-form-urlencoded"
-},
-body: formData
-});
+    const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/login",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/x-www-form-urlencoded"
+        },
+        body: formData
+    });
 
-const data = await res.json();
+    const data = await res.json();
 
-console.log("STATUS:", res.status);
-console.log("DATA:", data);
+    if(res.status !== 200){
+        alert("Login failed");
+        return;
+    }
 
-if(res.status !== 200){
-alert("Login failed");
-return;
-}
+    localStorage.setItem("token", data.access_token);
 
-localStorage.setItem("token", data.access_token);
+    alert("Login Successful");
 
-alert("Login Successful");
-
-window.location.href = "index.html";
+    window.location.href = "index.html";
 }
 
 </script>
