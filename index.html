@@ -6,107 +6,21 @@
 <title>Islamic AI</title>
 
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:#f2f2f2;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.chat-container{
-    width:370px;
-    height:620px;
-    background:white;
-    border-radius:20px;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-    box-shadow:0 0 20px rgba(0,0,0,0.15);
-}
-
-.header{
-    background:#0f3d3e;
-    color:white;
-    padding:15px;
-    text-align:center;
-    font-weight:bold;
-    position:relative;
-}
-
-.clear-btn{
-    position:absolute;
-    right:10px;
-    top:10px;
-    background:red;
-    border:none;
-    color:white;
-    padding:5px 10px;
-    border-radius:15px;
-    cursor:pointer;
-    font-size:12px;
-}
-
-.chat-box{
-    flex:1;
-    padding:10px;
-    overflow-y:auto;
-    display:flex;
-    flex-direction:column;
-}
-
-.message{
-    margin:6px 0;
-    padding:8px 12px;
-    border-radius:15px;
-    max-width:80%;
-}
-
-.user{
-    background:#cce5ff;
-    align-self:flex-end;
-}
-
-.bot{
-    background:#e9ecef;
-    align-self:flex-start;
-}
-
-.input-area{
-    display:flex;
-    padding:10px;
-    border-top:1px solid #ddd;
-}
-
-input{
-    flex:1;
-    padding:8px;
-    border-radius:20px;
-    border:1px solid #ccc;
-    outline:none;
-}
-
-button{
-    margin-left:8px;
-    padding:8px 15px;
-    border:none;
-    background:#0f3d3e;
-    color:white;
-    border-radius:20px;
-    cursor:pointer;
-}
-
-#related-topics button {
-  margin: 5px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  border: none;
-  background: #e0e0e0;
-  cursor: pointer;
-}
-
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(rgba(15,61,62,.9),rgba(15,61,62,.9)),url('https://images.unsplash.com/photo-1564769625905-50e93615e769?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;display:flex;justify-content:center;align-items:center;height:100vh}
+.chat-container{width:390px;height:680px;background:#fff;border-radius:22px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 25px rgba(0,0,0,.25)}
+.header{background:#0f3d3e;color:#fff;padding:15px;text-align:center;font-weight:bold;position:relative}
+.clear-btn,.theme-btn{position:absolute;top:10px;border:none;color:#fff;padding:5px 10px;border-radius:15px;cursor:pointer;font-size:12px}
+.clear-btn{right:10px;background:#d63031}.theme-btn{left:10px;background:#636e72}
+.chat-box{flex:1;padding:12px;overflow-y:auto;display:flex;flex-direction:column;background:#f8f9fa}
+.message{margin:6px 0;padding:10px 14px;border-radius:16px;max-width:82%;line-height:1.4;white-space:pre-wrap}
+.user{background:#d1ecf1;align-self:flex-end}.bot{background:#e9ecef;align-self:flex-start}
+.input-area{display:flex;padding:10px;border-top:1px solid #ddd;background:#fff}
+input{flex:1;padding:10px;border-radius:20px;border:1px solid #ccc;outline:none}
+button{margin-left:8px;padding:8px 14px;border:none;background:#0f3d3e;color:white;border-radius:20px;cursor:pointer}
+#related-topics{padding:8px;background:#fff;border-top:1px solid #eee;overflow-x:auto;white-space:nowrap}
+#related-topics button{margin:4px;padding:6px 12px;border-radius:20px;border:none;background:#e0e0e0;color:#000}
+.dark{background:#111!important}.dark .chat-container{background:#1e1e1e}.dark .chat-box{background:#181818}.dark .bot{background:#333;color:#fff}.dark .user{background:#004d66;color:#fff}.dark input{background:#2d2d2d;color:#fff;border:1px solid #555}.dark #related-topics{background:#1e1e1e}
 </style>
 </head>
 
@@ -115,7 +29,8 @@ button{
 <div class="chat-container">
 
 <div class="header">
-<span style="font-size:18px;">🤖</span> Islamic AI Assistant
+<button class="theme-btn" onclick="toggleTheme()">🌙</button>
+🤖 Islamic AI Assistant
 <button class="clear-btn" onclick="clearChat()">Clear</button>
 </div>
 
@@ -130,157 +45,35 @@ button{
 </div>
 
 <script>
-
-const token = localStorage.getItem("token");
-const chatBox = document.getElementById("chatBox");
-
+const token = localStorage.getItem('token');
+const chatBox = document.getElementById('chatBox');
 window.onload = loadHistory;
+async function loadHistory(){try{const res=await fetch('https://islamic-ai-backend-b4z6.onrender.com/history',{headers:{Authorization:'Bearer '+token}});if(res.status===401){alert('Session expired');localStorage.removeItem('token');window.location.href='admin.html';return;}const data=await res.json();chatBox.innerHTML='';data.history.forEach(item=>{addMsg(item.question,'user');addMsg(item.answer,'bot')});chatBox.scrollTop=chatBox.scrollHeight;}catch(e){console.log(e)}}
+function addMsg(text,type){const div=document.createElement('div');div.className='message '+type;div.innerText=text;chatBox.appendChild(div); chatBox.scrollTop = chatBox.scrollHeight}
+async function sendMessage(){const input=document.getElementById('userInput');const message=input.value.trim();if(!message)return;addMsg(message,'user');input.value='';const loadingDiv=document.createElement('div');loadingDiv.className='message bot';loadingDiv.innerText='Typing...';chatBox.appendChild(loadingDiv);chatBox.scrollTop=chatBox.scrollHeight;try{const res=await fetch('https://islamic-ai-backend-b4z6.onrender.com/chat',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({message})});if(res.status===401){alert('Session expired');localStorage.removeItem('token');window.location.href='admin.html';return;}if(!res.ok){loadingDiv.remove();addMsg('Server waking up... please try again.','bot');return;}const data=await res.json();loadingDiv.remove();const replyText = data.reply || 'No response';if(data.source){
+    addMsg("📚 Source: " + data.source, 'bot');
+}
+addMsg(replyText,'bot');
 
-async function loadHistory(){
-    try{
-        const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/history",{
-            headers:{
-                "Authorization":"Bearer " + token
-            }
-        });
-
-        if(res.status === 401){
-            alert("Session expired. Please login again.");
-            localStorage.removeItem("token");
-            window.location.href="admin.html";
-            return;
-        }
-
-        const data = await res.json();
-        chatBox.innerHTML="";
-
-        data.history.forEach(item=>{
-            addMessage("user", item.question);
-            addMessage("bot", item.answer);
-        });
-
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-    }catch(err){
-        console.log(err);
-    }
+if(data.source){
+    addMsg("📚 Source: " + data.source, 'bot');
 }
 
-function addMessage(type,text){
-    const div=document.createElement("div");
-    div.className="message " + type;
-    div.innerText=text;
-    chatBox.appendChild(div);
+speakText(replyText);
+showRelated(data.related_topics || []);;chatBox.scrollTop=chatBox.scrollHeight;}catch(err){loadingDiv.remove();addMsg('Network error.','bot')}}
+function showRelated(topics){const relatedDiv=document.getElementById('related-topics');relatedDiv.innerHTML='';topics.forEach(topic=>{const btn=document.createElement('button');btn.innerText=topic;btn.onclick=()=>{document.getElementById('userInput').value=topic;sendMessage()};relatedDiv.appendChild(btn);})}
+async function clearChat(){await fetch('https://islamic-ai-backend-b4z6.onrender.com/clear',{method:'DELETE',headers:{Authorization:'Bearer '+token}});chatBox.innerHTML='';document.getElementById('related-topics').innerHTML='';}
+function handleEnter(e){if(e.key==='Enter')sendMessage()}
+function startVoice(){const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SpeechRecognition){alert('Voice not supported');return;}const recognition=new SpeechRecognition();recognition.lang='en-US';recognition.onresult=(event)=>{document.getElementById('userInput').value=event.results[0][0].transcript;sendMessage()};recognition.start();}
+function speakText(text){if(!text)return;window.speechSynthesis.cancel();const speech=new SpeechSynthesisUtterance(text);speech.lang='en-US';window.speechSynthesis.speak(speech)}
+function toggleTheme(){document.body.classList.toggle('dark');
+    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
 }
 
-async function sendMessage(){
-
-    const input=document.getElementById("userInput");
-    const message=input.value.trim();
-
-    if(!message) return;
-
-    addMessage("user",message);
-    chatBox.scrollTop=chatBox.scrollHeight;
-
-    input.value="";
-
-    try{
-
-    const res=await fetch("https://islamic-ai-backend-b4z6.onrender.com/chat",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json",
-            "Authorization":"Bearer " + token
-        },
-        body:JSON.stringify({message:message})
-    });
-
-    if(res.status === 401){
-        alert("Session expired.");
-        localStorage.removeItem("token");
-        window.location.href="admin.html";
-        return;
-    }
-
-    if(!res.ok){
-        addMessage("bot","Server waking up... please try again.");
-        return;
-    }
-
-    const data = await res.json();
-
-    const reply = data.reply || data.answer || data.response || data.message || "No response";
-
-    addMessage("bot",reply);
-
-    speak(reply);
-
-    chatBox.scrollTop=chatBox.scrollHeight;
-
-    }catch(err){
-
-        addMessage("bot","Connection error. Try again.");
-
-    }
+if(localStorage.getItem('theme') === 'dark'){
+    document.body.classList.add('dark');
 }
-
-async function clearChat(){
-
-    await fetch("https://islamic-ai-backend-b4z6.onrender.com/clear",{
-        method:"DELETE",
-        headers:{
-            "Authorization":"Bearer " + token
-        }
-    });
-
-    chatBox.innerHTML="";
-}
-
-function handleEnter(e){
-    if(e.key === "Enter"){
-        sendMessage();
-    }
-}
-
-function startVoice(){
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if(!SpeechRecognition){
-        alert("Voice recognition not supported in this browser");
-        return;
-    }
-
-    const recognition = new SpeechRecognition();
-
-    recognition.lang="en-US";
-
-    recognition.onresult=function(e){
-
-        const text=e.results[0][0].transcript;
-
-        document.getElementById("userInput").value=text;
-
-        sendMessage();
-    }
-
-    recognition.start();
-}
-
-function speak(text){
-
-    if(!window.speechSynthesis) return;
-
-    const speech=new SpeechSynthesisUtterance(text);
-
-    speech.lang="en-US";
-
-    window.speechSynthesis.speak(speech);
-}
-
 </script>
 
 </body>
 </html>
-
