@@ -7,10 +7,15 @@ from jose import JWTError, jwt
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends
+from rag_engine import semantic_search, refresh_index
+from groq import Groq
+from pypdf import PdfReader
+from fastapi import UploadFile, File
 import sqlite3
 import os
 from dotenv import load_dotenv
 load_dotenv()
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 from datetime import datetime
 import re
 
@@ -75,36 +80,6 @@ def init_db():
     )
 """)
 
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS quran (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        surah INTEGER,
-        ayah INTEGER,
-        text TEXT,
-        translation TEXT,
-        topic TEXT
-    )
-""")
-    
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS hadith (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        book TEXT,
-        number INTEGER,
-        text TEXT,
-        topic TEXT
-    )
-""")
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS tafsir (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        surah INTEGER,
-        ayah INTEGER,
-        explanation TEXT
-    )
-""")
-
     conn.commit()
     conn.close()
 
@@ -131,119 +106,104 @@ def seed_data():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-def clean_text(text):
+    data = [
 
-    text = text.lower()
+        # -------- BASIC KNOWLEDGE --------
+        ("prayer",
+ "🕌 Salah is one of the Five Pillars of Islam.",
+ "knowledge",
+ """🕌 WHY WE PRAY (SALAH)
 
-    remove = ["why","what","is","the","tell","me","about","do","muslims"]
+Salah is a direct connection between a servant and Allah.
 
-    for r in remove:
-        text = text.replace(r,"")
+📖 Quran (29:45):
+"Indeed, prayer prevents immorality and wrongdoing."
 
-    return text.strip()
+The Prophet ﷺ said:
+"The first matter that the slave will be brought to account for on the Day of Judgment is the prayer."
 
-    import pickle
-from sentence_transformers import SentenceTransformer
-import numpy as np
+✨ Practical Advice:
+Pray slowly, understand meanings, and treat it like a meeting with Allah.
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
-
-with open("quran_embeddings.pkl","rb") as f:
-    quran_data = pickle.load(f)
-
-rows = quran_data["rows"]
-embeddings = quran_data["embeddings"]
-
-def search_quran(user_msg):
-
-    print("🔍 SEARCH_QURAN CALLED:", user_msg)
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    words = [w for w in user_msg.lower().split() if len(w) > 2]
-
-    cursor.execute(
-        "SELECT surah, ayah, text, translation, topic FROM quran"
-    )
-
-    rows = cursor.fetchall()
-
-    matches = []
-
-    for surah, ayah, text, translation, topic in rows:
-
-        searchable = f"{text or ''} {translation or ''} {topic or ''}".lower()
-
-        score = sum(word in searchable for word in words)
-
-        if score > 0:
-            matches.append((score, surah, ayah, text, translation))
-
-    conn.close()
-
-    if matches:
-
-        # Best matches first
-        matches.sort(reverse=True)
-
-        result = ""
-
-        for score, surah, ayah, text, translation in matches[:3]:
-
-            tafsir = search_tafsir(surah, ayah)
-
-            result += f"""
-📖 Quran {surah}:{ayah}
-
-{text}
-
-Meaning:
-{translation}
+🤲 Remember:
+Prayer is not a burden — it is spiritual oxygen.
 """
+),
+        ("zakat", "💰 Zakat is 2.5% of yearly savings given to the needy.", "knowledge"),
+        ("fasting", "🌙 Fasting in Ramadan teaches patience and self-control.", "knowledge"),
+        ("hajj", "🕋 Hajj is pilgrimage to Makkah, required once if financially able.", "knowledge"),
+        ("quran", "📖 Quran is the holy book revealed to Prophet Muhammad ﷺ.", "knowledge"),
+        ("prophet", "🌟 Prophet Muhammad ﷺ is the final messenger of Islam.", "knowledge"),
+        ("iman", "✨ Iman means faith in Allah, angels, books, messengers, day of judgment, destiny.", "knowledge"),
+        ("islam", "☪ Islam means submission to the will of Allah.", "knowledge"),
+        ("ihsan", "🌸 Ihsan means worship Allah as if you see Him.", "knowledge"),
+        ("ramadan", "🌙 Ramadan is the 9th month of Islamic calendar.", "knowledge"),
+        ("eid", "🎉 Eid is a festival celebrated after Ramadan and Hajj.", "knowledge"),
+        ("charity", "🤝 Charity increases blessings and removes sins.", "knowledge"),
+        ("dua", "🙏 Dua is supplication made to Allah.", "knowledge"),
+        ("tawheed", "🕊 Tawheed means belief in oneness of Allah.", "knowledge"),
+        ("angels", "👼 Angels are created from light.", "knowledge"),
+        ("jannah", "🌿 Jannah is paradise promised to believers.", "knowledge"),
+        ("jahannam", "🔥 Jahannam is hellfire.", "knowledge"),
+        ("wudu", "💧 Wudu is purification before prayer.", "knowledge"),
+        ("ghusl", "🚿 Ghusl is full body purification.", "knowledge"),
+        ("adhan", "📢 Adhan is call to prayer.", "knowledge"),
+        ("sunnah", "📜 Sunnah are teachings of Prophet ﷺ.", "knowledge"),
+        ("hadith", "📚 Hadith are sayings of Prophet Muhammad ﷺ.", "knowledge"),
+        ("umrah", "🕋 Umrah is minor pilgrimage.", "knowledge"),
+        ("sawm", "🌙 Sawm means fasting.", "knowledge"),
+        ("salah", "🕌 Salah means prayer.", "knowledge"),
+        ("shahada", "☝ Shahada is declaration of faith.", "knowledge"),
+        ("hijab", "🧕 Hijab is modest dress in Islam.", "knowledge"),
+        ("halal", "✅ Halal means permissible.", "knowledge"),
+        ("haram", "❌ Haram means forbidden.", "knowledge"),
+        ("qiyamah", "⏳ Qiyamah is the Day of Judgment.", "knowledge"),
 
-            if tafsir:
-                result += f"\n📖 Tafsir:\n{tafsir}\n"
+        # -------- LIFE GUIDANCE --------
+        ("music", "🎵 Some scholars consider music haram, others allow soft nasheeds without instruments. Avoid anything that leads to sin.", "guidance"),
+        ("stress", "🧠 When stressed, remember Allah, pray 2 rakah, and make dua. Allah says 'Verily in remembrance of Allah do hearts find rest.'", "guidance"),
+        ("depression",
+ "💙 Islam encourages seeking help and making dua.",
+ "guidance",
+ """💙 FEELING DEPRESSED IN ISLAM
 
-            result += "\n-------------------\n"
+Islam acknowledges emotional pain.
 
-        return result
+📖 Quran (94:5-6):
+"Indeed, with hardship comes ease."
 
-    return None
+Even Prophet Muhammad ﷺ faced sadness (Year of Sorrow).
 
-def seed_hadith():
+✨ Practical Steps:
+• Pray 2 rakah
+• Make dua
+• Talk to someone trusted
+• Seek professional help if needed
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    hadith_data = [
-
-        ("Bukhari",1,
-        "Actions are judged by intentions",
-        "intention"),
-
-        ("Muslim",32,
-        "Allah does not look at your appearance but at your hearts",
-        "heart"),
-
-        ("Bukhari",6114,
-        "The strong person is the one who controls anger",
-        "anger")
-
+🤲 Allah tests those He loves. Your pain is not ignored.
+"""
+),
+        ("travel prayer", "✈️ While travelling, you can shorten 4 rakah prayers to 2 rakah (Qasr).", "guidance"),
+        ("forgiveness", "🤲 Allah is Most Forgiving. Sincerely repent and avoid repeating the sin.", "guidance"),
+        ("patience", "⏳ Allah loves those who are patient (Sabr). Hardships remove sins.", "guidance"),
+        ("gratitude", "🌼 If you are grateful, Allah will increase you (Quran 14:7).", "guidance"),
+        ("halal income", "💼 Earning halal sustains blessings in life. Avoid interest (riba) and fraud.", "guidance"),
+        ("parents", "👨‍👩‍👧 Islam commands kindness to parents after worship of Allah.", "guidance"),
+        ("anger", "🔥 Control anger. Prophet ﷺ said: The strong person is the one who controls himself when angry.", "guidance"),
     ]
 
-    for book, number, text, topic in hadith_data:
+    for item in data:
+        if len(item) == 4:
+            topic, content, type_, detailed_content = item
+        else:
+            topic, content, type_ = item
+            detailed_content = None
 
-        cursor.execute(
-        "SELECT id FROM hadith WHERE book=? AND number=?",
-        (book,number)
-        )
-
+        cursor.execute("SELECT * FROM knowledge WHERE topic=?", (topic,))
         if not cursor.fetchone():
-
             cursor.execute(
-            "INSERT INTO hadith (book, number, text, topic) VALUES (?,?,?,?)",
-            (book,number,text,topic)
+                "INSERT INTO knowledge (topic, content, type, detailed_content) VALUES (?, ?, ?, ?)",
+                (topic, content, type_, detailed_content)
             )
 
     conn.commit()
@@ -419,7 +379,7 @@ def search_database(user_msg, session_id):
                     "related": related
                 }
 
-# Memory fallback
+    # ✅ Memory fallback
     last_topic = get_memory(session_id)
 
     if last_topic:
@@ -437,24 +397,11 @@ def search_database(user_msg, session_id):
                 "related": []
             }
 
-    # Quran fallback search
-    quran_result = search_quran(user_msg)
-
-    if quran_result:
-        conn.close()
-        return {
-            "text": quran_result,
-            "related": []
-        }
-
     conn.close()
     return None
 
 def hash_password(password: str):
-    try:
-        return pwd_context.hash(password)
-    except:
-        return pwd_context.hash(password[:72])
+    return pwd_context.hash(password)
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -513,150 +460,54 @@ def require_admin(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
-from deep_translator import GoogleTranslator
+# ================= ROUTES =================
+def ask_groq(user_question, context):
+    prompt = f"""
+You are an Islamic AI assistant.
+Answer ONLY from the provided context.
+If answer is not in context, say:
+'Sorry, I only answer based on authentic Islamic knowledge stored in my system.'
 
-def translate_text(text, target="en"):
+Context:
+{context}
 
-    try:
-        translated = GoogleTranslator(source='auto', target=target).translate(text)
-        return translated
-    except:
-        return text
-    
-def search_tafsir(surah, ayah):
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT explanation FROM tafsir WHERE surah=? AND ayah=?",
-        (surah, ayah)
-    )
-
-    row = cursor.fetchone()
-    conn.close()
-
-    return row[0] if row else None
-
-def clean_text(text):
-
-    text = text.lower()
-
-    remove = ["why", "what", "is", "the", "tell", "me", "about", "do", "muslims"]
-
-    for r in remove:
-        text = text.replace(r, "")
-
-    return text.strip()
-def search_hadith(user_msg):
-
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    user_msg = user_msg.lower()
-
-    cursor.execute("SELECT book, number, text, topic FROM hadith")
-
-    rows = cursor.fetchall()
-
-    for book, number, text, topic in rows:
-
-        if topic in user_msg:
-
-            conn.close()
-
-            return f"""
-📚 Hadith ({book} {number})
-
-{text}
+Question:
+{user_question}
 """
 
-    conn.close()
-    return None
-def seed_quran():
+    response = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{"role": "user", "content": prompt}]
+    )
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    return response.choices[0].message.content
 
-    cursor.execute("SELECT id FROM quran LIMIT 1")
-
-    if cursor.fetchone():
-        conn.close()
-        return
-
-    sample = [
-        (2,183,"O you who believe, fasting is prescribed for you","Fasting is obligatory","fasting"),
-        (94,5,"Indeed with hardship comes ease","Allah promises ease after hardship","patience")
-    ]
-
-    for surah, ayah, text, translation, topic in sample:
-        cursor.execute(
-        "INSERT INTO quran (surah, ayah, text, translation, topic) VALUES (?,?,?,?,?)",
-        (surah, ayah, text, translation, topic)
-        )
-
-    conn.commit()
-    conn.close()
-# ================= ROUTES =================
-
-@app.get("/")
-def home():
-    return {"message": "Islamic AI Startup Backend Running"}
 
 @app.post("/chat")
 def chat(data: Message, current_user: dict = Depends(get_current_user)):
-
     user_msg = data.message.strip()
-    user_msg = translate_text(user_msg, "en")
 
     if not user_msg:
         return {"reply": "Please ask something meaningful."}
 
     session_id = str(current_user["id"])
-
-    # 🔎 Quran search FIRST
-    quran_result = search_quran(user_msg)
-
-    if quran_result:
-
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-
-        cursor.execute("""
-        INSERT INTO chat_history (user_id, question, answer, intent, created_at)
-        VALUES (?, ?, ?, ?, ?)
-        """, (
-            current_user["id"],
-            user_msg,
-            quran_result,
-            "quran",
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ))
-
-        conn.commit()
-        conn.close()
-
-        return {
-            "reply": quran_result,
-            "related_topics": []
-        }
-
-    # 🧠 AI engine (existing system)
-    result = islamic_ai_engine(user_msg, session_id)
+    result = search_database(user_msg, session_id)
 
     if not result:
-        return {"reply": "🤖 I do not have detailed information yet."}
+        context = "No database context found"
+        related = []
+    else:
+        context = result["text"]
+        related = result["related"]
 
-    reply = result["text"]
-    related = result["related"]
+    reply = ask_groq(user_msg, context)
 
-    # Save history
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO chat_history (user_id, question, answer, intent, created_at)
-    VALUES (?, ?, ?, ?, ?)
+        INSERT INTO chat_history (user_id, question, answer, intent, created_at)
+        VALUES (?, ?, ?, ?, ?)
     """, (
         current_user["id"],
         user_msg,
@@ -668,59 +519,10 @@ def chat(data: Message, current_user: dict = Depends(get_current_user)):
     conn.commit()
     conn.close()
 
-    reply = translate_text(reply, "en")
-
     return {
         "reply": reply,
-        "related_topics": related
-    }
-
-def islamic_ai_engine(user_msg, session_id):
-
-    # clean message
-    user_msg = clean_text(user_msg)
-
-    # 1️⃣ Quran search
-    quran = search_quran(user_msg)
-
-    if quran:
-        return {
-            "text": quran,
-            "related": []
-        }
-
-    # 2️⃣ Hadith search
-    hadith = search_hadith(user_msg)
-
-    if hadith:
-        return {
-            "text": hadith,
-            "related": []
-        }
-
-    # 3️⃣ Knowledge search
-    knowledge = search_database(user_msg, session_id)
-
-    if knowledge:
-        return knowledge
-
-    answer = ""
-
-    if quran:
-        answer += quran + "\n\n"
-
-    if hadith:
-        answer += hadith + "\n\n"
-
-    if knowledge:
-        answer += knowledge["text"]
-
-    if answer.strip() == "":
-        return None
-
-    return {
-        "text": answer,
-        "related": knowledge["related"] if knowledge else []
+        "related_topics": related,
+        "source": context[:120] if context else "Islamic knowledge base"
     }
 
 @app.get("/history")
@@ -851,14 +653,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 def startup_event():
     init_db()
     seed_data()
-    seed_hadith()
 
     # 🔥 AUTO CREATE ADMIN IF NOT EXISTS
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     cursor.execute("SELECT id FROM users WHERE email=?", ("admin@gmail.com",))
-
     if not cursor.fetchone():
         hashed_pw = hash_password("123456")
         cursor.execute(
@@ -866,5 +666,39 @@ def startup_event():
             ("admin", "admin@gmail.com", hashed_pw, "admin")
         )
         conn.commit()
+        conn.close()
 
+@app.post("/admin/upload-pdf")
+def upload_pdf(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_admin)
+):
+    text = ""
+
+    pdf = PdfReader(file.file)
+
+    for page in pdf.pages:
+        extracted = page.extract_text()
+        if extracted:
+            text += extracted + "\n"
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO knowledge (topic, content, type, detailed_content, reference)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
+        file.filename,
+        text[:500],
+        "book",
+        text,
+        file.filename
+    ))
+
+    conn.commit()
     conn.close()
+
+    refresh_index()
+
+    return {"message": "PDF uploaded successfully"}
