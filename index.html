@@ -55,6 +55,10 @@ async function sendMessage(){const input=document.getElementById('userInput');co
 }
 addMsg(replyText,'bot');
 
+if(data.language){
+   addMsg("🌍 " + data.language.toUpperCase(), "bot");
+}
+
 if(data.source){
     addMsg("📚 Source: " + data.source, 'bot');
 }
