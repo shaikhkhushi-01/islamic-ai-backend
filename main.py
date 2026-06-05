@@ -11,6 +11,7 @@ from rag_engine import semantic_search, refresh_index
 from groq import Groq
 from pypdf import PdfReader
 from fastapi import UploadFile, File
+from langdetect import detect
 import sqlite3
 import os
 from dotenv import load_dotenv
@@ -279,7 +280,7 @@ def get_related_topics(current_topic):
     # Fuzzy similarity sort
     similar = get_close_matches(current_topic, same_type_topics, n=5, cutoff=0.3)
 
-    return similar[:4]
+    return similar[:8]
 
 # ================= SEARCH =================
 def find_best_match(user_msg, topics):
@@ -463,10 +464,18 @@ def require_admin(current_user: dict = Depends(get_current_user)):
 # ================= ROUTES =================
 def ask_groq(user_question, context):
     prompt = f"""
-You are an Islamic AI assistant.
-Answer ONLY from the provided context.
-If answer is not in context, say:
-'Sorry, I only answer based on authentic Islamic knowledge stored in my system.'
+You are an advanced Islamic AI Assistant.
+If context is empty,
+answer from authentic mainstream Islamic knowledge.
+Rules:
+
+1. Understand English, Urdu, Hindi and Arabic.
+2. Reply in the SAME language as user.
+3. Use Quran and Hadith references when available.
+4. If answer exists in context, use context.
+5. If context is limited, answer using authentic Islamic knowledge.
+6. Never invent fake Quran verses or Hadith.
+7. Be respectful and educational.
 
 Context:
 {context}
@@ -484,7 +493,9 @@ Question:
 
 
 @app.post("/chat")
+
 def chat(data: Message, current_user: dict = Depends(get_current_user)):
+
     user_msg = data.message.strip()
 
     if not user_msg:
@@ -493,14 +504,21 @@ def chat(data: Message, current_user: dict = Depends(get_current_user)):
     session_id = str(current_user["id"])
     result = search_database(user_msg, session_id)
 
-    if not result:
-        context = "No database context found"
-        related = []
+if not result:
+    semantic_result = semantic_search(user_msg)
+
+    if semantic_result:
+        context = semantic_result[:4000]
     else:
-        context = result["text"]
-        related = result["related"]
+        context = "No Islamic knowledge found"
+
+    related = []
+else:
+    context = result["text"]
+    related = result["related"]
 
     reply = ask_groq(user_msg, context)
+    lang = detect_language(user_msg)
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -521,6 +539,7 @@ def chat(data: Message, current_user: dict = Depends(get_current_user)):
 
     return {
         "reply": reply,
+        "language": lang,
         "related_topics": related,
         "source": context[:120] if context else "Islamic knowledge base"
     }
@@ -702,3 +721,17 @@ def upload_pdf(
     refresh_index()
 
     return {"message": "PDF uploaded successfully"}
+
+def detect_language(text):
+    try:
+        lang = detect(text)
+
+        if lang == "ur":
+            return "urdu"
+        elif lang == "ar":
+            return "arabic"
+        else:
+            return "english"
+
+    except:
+        return "english"
