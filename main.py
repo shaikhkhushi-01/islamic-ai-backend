@@ -493,6 +493,18 @@ Question:
 
 
 @app.post("/chat")
+def chat(data: Message, current_user: dict = Depends(get_current_user)):
+
+    user_msg = data.message.strip()
+
+    greeting_reply = handle_greetings(user_msg)
+
+    if greeting_reply:
+        return {
+            "reply": greeting_reply,
+            "related_topics": []
+        }
+
 
 def chat(data: Message, current_user: dict = Depends(get_current_user)):
 
@@ -735,3 +747,35 @@ def detect_language(text):
 
     except:
         return "english"
+    
+def handle_greetings(msg):
+    msg = msg.lower().strip()
+
+    greetings = [
+        "salam",
+        "assalamualaikum",
+        "assalamu alaikum",
+        "asalamualaikum",
+        "hi",
+        "hello",
+        "hey"
+    ]
+
+    if msg in greetings:
+        return """🌹 Wa Alaikum Assalam wa Rahmatullahi wa Barakatuh.
+
+Welcome to Islamic AI Assistant 🤖
+
+You can ask me about:
+📖 Quran
+🕌 Salah
+🌙 Ramadan
+🕋 Hajj & Umrah
+👨‍👩‍👧 Family & Marriage
+💰 Zakat
+📜 Islamic History
+🤲 Dua & Dhikr
+
+How can I help you today?"""
+    
+    return None
