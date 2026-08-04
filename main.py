@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from modelw.schemas import Message, RegisterUser, LoginUser
 from difflib import get_close_matches
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -113,9 +113,6 @@ app.include_router(admin_router)
 app.include_router(history_router)
 
 # ================= MODEL =================
-
-class Message(BaseModel):
-    message: str
 
 def seed_data():
     conn = sqlite3.connect(DB_PATH)
@@ -426,15 +423,6 @@ def create_access_token(data: dict):
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-class RegisterUser(BaseModel):
-    username: str
-    email: str
-    password: str
-
-class LoginUser(BaseModel):
-    email: str
-    password: str
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
 
