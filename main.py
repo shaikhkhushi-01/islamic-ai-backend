@@ -12,6 +12,10 @@ from groq import Groq
 from pypdf import PdfReader
 from fastapi import UploadFile, File
 from langdetect import detect
+from routes.chat_routes import router as chat_router
+from routes.auth_routes import router as auth_router
+from routes.admin_routes import router as admin_router
+from routes.history_routes import router as history_router
 from database import *
 from auth import *
 from models import Message, RegisterUser, LoginUser
@@ -103,6 +107,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(chat_router)
+app.include_router(auth_router)
+app.include_router(admin_router)
+app.include_router(history_router)
 
 # ================= MODEL =================
 
