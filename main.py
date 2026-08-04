@@ -2,10 +2,7 @@ from fastapi import FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from modelw.schemas import Message, RegisterUser, LoginUser
 from difflib import get_close_matches
-from passlib.context import CryptContext
-from jose import JWTError, jwt
 from datetime import timedelta
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends
 from rag_engine import semantic_search, refresh_index
 from groq import Groq
@@ -22,6 +19,13 @@ from models import Message, RegisterUser, LoginUser
 from config import *
 from ai_engine import *
 from services import *
+from auth import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    get_current_user,
+    require_admin
+)
 import sqlite3
 import os
 from dotenv import load_dotenv
