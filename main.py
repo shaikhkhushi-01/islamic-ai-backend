@@ -16,6 +16,8 @@ from database import *
 from auth import *
 from models import Message, RegisterUser, LoginUser
 from config import *
+from ai_engine import *
+from services import *
 import sqlite3
 import os
 from dotenv import load_dotenv
