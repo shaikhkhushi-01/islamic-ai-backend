@@ -12,6 +12,7 @@ from groq import Groq
 from pypdf import PdfReader
 from fastapi import UploadFile, File
 from langdetect import detect
+from database import *
 import sqlite3
 import os
 from dotenv import load_dotenv
