@@ -14,6 +14,8 @@ from fastapi import UploadFile, File
 from langdetect import detect
 from database import *
 from auth import *
+from models import Message, RegisterUser, LoginUser
+from config import *
 import sqlite3
 import os
 from dotenv import load_dotenv
