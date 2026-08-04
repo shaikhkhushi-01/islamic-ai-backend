@@ -548,7 +548,6 @@ else:
 
     conn.commit()
     conn.close()
-    
     return {
         "reply": reply,
         "language": lang,
