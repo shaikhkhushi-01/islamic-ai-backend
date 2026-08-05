@@ -2,29 +2,26 @@ import sqlite3
 from datetime import datetime
 
 from database import DB_PATH
-from rag_engine import semantic_search
+from services.search_service import search_database
 from ai_engine import ask_groq
-from utils.search import search_database
 
 
-def chat_response(user_msg, current_user):
+def process_chat(user_msg, current_user):
 
     session_id = str(current_user["id"])
 
-    result = search_database(user_msg, session_id)
+    result = search_database(
+        user_msg,
+        session_id
+    )
 
-    if result:
+    context = result["text"]
+    related = result["related"]
 
-        context = result["text"]
-        related = result["related"]
-
-    else:
-
-        context = semantic_search(user_msg)
-
-        related = []
-
-    reply = ask_groq(user_msg, context)
+    reply = ask_groq(
+        user_msg,
+        context
+    )
 
     conn = sqlite3.connect(DB_PATH)
 
@@ -33,8 +30,13 @@ def chat_response(user_msg, current_user):
     cursor.execute(
         """
         INSERT INTO chat_history
-        (user_id,question,answer,intent,created_at)
-
+        (
+            user_id,
+            question,
+            answer,
+            intent,
+            created_at
+        )
         VALUES(?,?,?,?,?)
         """,
         (
@@ -47,15 +49,10 @@ def chat_response(user_msg, current_user):
     )
 
     conn.commit()
-
     conn.close()
 
     return {
-
         "reply": reply,
-
         "related_topics": related,
-
         "source": context[:150]
-
     }
