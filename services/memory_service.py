@@ -1,9 +1,11 @@
 import sqlite3
 from difflib import get_close_matches
+
 from database import DB_PATH
 
 
 def save_memory(session_id, topic):
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -17,7 +19,10 @@ def save_memory(session_id, topic):
         INSERT INTO chat_memory(session_id,last_topic)
         VALUES(?,?)
         """,
-        (session_id, topic)
+        (
+            session_id,
+            topic
+        )
     )
 
     conn.commit()
@@ -25,7 +30,9 @@ def save_memory(session_id, topic):
 
 
 def get_memory(session_id):
+
     conn = sqlite3.connect(DB_PATH)
+
     cursor = conn.cursor()
 
     cursor.execute(
@@ -42,6 +49,7 @@ def get_memory(session_id):
     conn.close()
 
     if row:
+
         return row[0]
 
     return None
@@ -50,6 +58,7 @@ def get_memory(session_id):
 def get_related_topics(current_topic):
 
     conn = sqlite3.connect(DB_PATH)
+
     cursor = conn.cursor()
 
     cursor.execute(
@@ -65,25 +74,38 @@ def get_related_topics(current_topic):
 
     current_type = None
 
-    for topic, type_ in rows:
+    for topic, t in rows:
 
         if topic == current_topic:
-            current_type = type_
+
+            current_type = t
+
             break
 
     if current_type is None:
+
         return []
 
-    topics = []
+    topics = [
 
-    for topic, type_ in rows:
+        topic
 
-        if type_ == current_type and topic != current_topic:
-            topics.append(topic)
+        for topic, t in rows
 
-    return get_close_matches(
+        if t == current_type and topic != current_topic
+
+    ]
+
+    similar = get_close_matches(
+
         current_topic,
+
         topics,
+
         n=8,
+
         cutoff=0.30
+
     )
+
+    return similar
