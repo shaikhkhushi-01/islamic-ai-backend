@@ -19,6 +19,7 @@ from models import Message, RegisterUser, LoginUser
 from config import *
 from ai_engine import *
 from services import *
+from services.seed_service import seed_data
 from auth import (
     hash_password,
     verify_password,
