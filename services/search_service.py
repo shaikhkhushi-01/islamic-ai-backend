@@ -3,10 +3,11 @@ from difflib import get_close_matches
 
 from database import DB_PATH
 from ai_engine import detect_emotion
+from rag_engine import semantic_search
 from services.memory_service import (
     save_memory,
     get_memory,
-    get_related_topics
+    get_related_topics,
 )
 
 
@@ -14,26 +15,19 @@ def find_best_match(user_msg, topics):
 
     user_msg = user_msg.lower()
 
-    topics_sorted = sorted(
-        topics,
-        key=len,
-        reverse=True
-    )
+    topics_sorted = sorted(topics, key=len, reverse=True)
 
     for topic in topics_sorted:
-
         if topic.lower() in user_msg:
             return topic
 
     words = user_msg.split()
 
     for word in words:
-
         if word in topics:
             return word
 
     for word in words:
-
         match = get_close_matches(
             word,
             topics,
@@ -50,6 +44,7 @@ def find_best_match(user_msg, topics):
 def search_database(user_msg, session_id):
 
     conn = sqlite3.connect(DB_PATH)
+
     cursor = conn.cursor()
 
     user_msg = user_msg.lower()
@@ -58,29 +53,21 @@ def search_database(user_msg, session_id):
 
         "sad": "depression",
         "depressed": "depression",
-
         "tension": "stress",
         "worried": "stress",
-
         "traveling": "travel prayer",
         "journey": "travel prayer",
-
         "song": "music",
         "songs": "music",
-
         "pray": "prayer",
         "praying": "prayer",
         "namaz": "prayer"
 
     }
 
-    for word, replacement in synonyms.items():
-
-        if word in user_msg:
-            user_msg = user_msg.replace(
-                word,
-                replacement
-            )
+    for old, new in synonyms.items():
+        if old in user_msg:
+            user_msg = user_msg.replace(old, new)
 
     cursor.execute(
         """
@@ -94,18 +81,15 @@ def search_database(user_msg, session_id):
 
     rows = cursor.fetchall()
 
-    topics = [row[0] for row in rows]
+    topics = [r[0] for r in rows]
 
     if "music" in user_msg:
-
         best_topic = "music"
 
     elif "haram" in user_msg and "music" not in user_msg:
-
         best_topic = "haram"
 
     else:
-
         best_topic = find_best_match(
             user_msg,
             topics
@@ -125,49 +109,30 @@ def search_database(user_msg, session_id):
                 reply = detailed if detailed else content
 
                 if reference:
-
-                    reply += (
-                        f"\n\n📖 Reference: {reference}"
-                    )
+                    reply += f"\n\n📖 Reference: {reference}"
 
                 emotion = detect_emotion(user_msg)
 
                 if emotion == "sad":
-
-                    reply += (
-                        "\n\n🤲 Dua: Allahumma inni "
-                        "a'udhu bika minal-hammi "
-                        "wal-hazan."
-                    )
+                    reply += "\n\n🤲 Dua: Allahumma inni a'udhu bika minal-hammi wal-hazan."
 
                 elif emotion == "anxiety":
-
-                    reply += (
-                        "\n\n📿 Zikr: "
-                        "Hasbunallahu wa ni'mal wakeel."
-                    )
+                    reply += "\n\n📿 Zikr: Hasbunallahu wa ni'mal wakeel."
 
                 elif emotion == "guilt":
-
-                    reply += (
-                        "\n\n🕊 Tawbah:"
-                        " Astaghfirullah sincerely."
-                    )
+                    reply += "\n\n🕊 Tawbah: Astaghfirullah."
 
                 elif emotion == "anger":
+                    reply += "\n\n📜 Hadith: The strong person controls anger."
 
-                    reply += (
-                        "\n\n📜 Hadith:"
-                        " Strong believer controls anger."
-                    )
+                related = get_related_topics(topic)
 
                 conn.close()
 
                 return {
 
                     "text": reply,
-
-                    "related": get_related_topics(topic)
+                    "related": related
 
                 }
 
@@ -181,7 +146,9 @@ def search_database(user_msg, session_id):
             SELECT content,
                    detailed_content,
                    reference
+
             FROM knowledge
+
             WHERE topic=?
             """,
 
@@ -207,4 +174,12 @@ def search_database(user_msg, session_id):
 
     conn.close()
 
-    return None
+    semantic = semantic_search(user_msg)
+
+    return {
+
+        "text": semantic,
+
+        "related": []
+
+    }
