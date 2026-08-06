@@ -34,31 +34,29 @@ def process_chat(user_msg, current_user):
                 f"{verse['text']}\n\n"
             )
 
-    # Hadith Search
-
-hadith_results = search_hadith(user_msg)
-
-if hadith_results:
-
-    response = ""
-
-    for hadith in hadith_results:
-
-        response += (
-            f"📜 {hadith['book']} ({hadith['number']})\n"
-            f"{hadith['text']}\n\n"
-        )
-
-    return {
-        "reply": response,
-        "related_topics": [],
-        "source": "Hadith Engine"
-    }
-
         return {
             "reply": verses,
             "related_topics": [],
             "source": "Quran Engine"
+        }
+
+    # Hadith Search
+    hadith_results = search_hadith(user_msg)
+
+    if hadith_results:
+
+        response = ""
+
+        for hadith in hadith_results:
+            response += (
+                f"📜 {hadith['book']} ({hadith['number']})\n"
+                f"{hadith['text']}\n\n"
+            )
+
+        return {
+            "reply": response,
+            "related_topics": [],
+            "source": "Hadith Engine"
         }
 
     logger.info(f"Question : {user_msg}")
