@@ -1,26 +1,23 @@
-import sqlite3
-from database import DB_PATH
+import re
 
 
-def get_reference(topic):
+def extract_references(text: str):
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    references = []
 
-    cursor.execute(
-        """
-        SELECT reference
-        FROM knowledge
-        WHERE topic=?
-        """,
-        (topic,)
+    quran = re.findall(
+        r"Quran\s*\d+:\d+",
+        text,
+        re.IGNORECASE
     )
 
-    row = cursor.fetchone()
+    hadith = re.findall(
+        r"(Sahih Bukhari|Sahih Muslim|Abu Dawood|Tirmidhi)\s*\d+",
+        text,
+        re.IGNORECASE
+    )
 
-    conn.close()
+    references.extend(quran)
+    references.extend(hadith)
 
-    if row and row[0]:
-        return row[0]
-
-    return None
+    return list(set(references))
