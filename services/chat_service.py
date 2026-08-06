@@ -4,6 +4,7 @@ from datetime import datetime
 from database import DB_PATH
 from services.search_service import search_database
 from ai_engine import ask_groq, handle_greeting
+from hadith_engine import search_hadith
 from quran_engine import search_quran
 from utils.logger import logger
 
@@ -32,6 +33,27 @@ def process_chat(user_msg, current_user):
                 f"📖 {verse['surah']} ({verse['ayah']})\n"
                 f"{verse['text']}\n\n"
             )
+
+    # Hadith Search
+
+hadith_results = search_hadith(user_msg)
+
+if hadith_results:
+
+    response = ""
+
+    for hadith in hadith_results:
+
+        response += (
+            f"📜 {hadith['book']} ({hadith['number']})\n"
+            f"{hadith['text']}\n\n"
+        )
+
+    return {
+        "reply": response,
+        "related_topics": [],
+        "source": "Hadith Engine"
+    }
 
         return {
             "reply": verses,
