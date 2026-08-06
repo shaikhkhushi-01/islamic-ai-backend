@@ -7,8 +7,9 @@ from ai_engine import ask_groq, handle_greeting
 from hadith_engine import search_hadith
 from quran_engine import search_quran
 from services.citation_service import extract_references
+from services.search_service import get_last_topic
 from utils.logger import logger
-
+import re
 
 def process_chat(user_msg, current_user):
 
@@ -65,6 +66,25 @@ def process_chat(user_msg, current_user):
     logger.info(f"Question : {user_msg}")
 
     session_id = str(current_user["id"])
+
+    follow_up_patterns = [
+    r"^how many",
+    r"^why",
+    r"^how",
+    r"^when",
+    r"^where",
+    r"^tell me more",
+    r"^explain more",
+    r"^what about",
+    r"^its",
+    r"^their",
+    r"^them"
+]
+
+is_follow_up = any(
+    re.match(pattern, user_msg.lower())
+    for pattern in follow_up_patterns
+)
 
     result = search_database(user_msg, session_id)
 
