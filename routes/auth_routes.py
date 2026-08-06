@@ -1,10 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-import sqlite3
 
-from database import DB_PATH, hash_password, verify_password
-from auth import create_access_token
 from models.schemas import RegisterUser
+from services.auth_service import register_user, login_user
 
 router = APIRouter()
 
@@ -12,40 +10,13 @@ router = APIRouter()
 @router.post("/register")
 def register(user: RegisterUser):
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
+    success = register_user(user)
 
-    email = user.email.lower().strip()
-    username = user.username.strip()
-
-    cursor.execute(
-        "SELECT id FROM users WHERE email=?",
-        (email,)
-    )
-
-    if cursor.fetchone():
-        conn.close()
+    if not success:
         raise HTTPException(
             status_code=400,
             detail="Email already registered"
         )
-
-    hashed_pw = hash_password(user.password)
-
-    cursor.execute(
-        """
-        INSERT INTO users(username,email,password)
-        VALUES(?,?,?)
-        """,
-        (
-            username,
-            email,
-            hashed_pw
-        )
-    )
-
-    conn.commit()
-    conn.close()
 
     return {
         "message": "User registered successfully"
@@ -57,46 +28,16 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends()
 ):
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    email = form_data.username.lower().strip()
-
-    cursor.execute(
-        """
-        SELECT id,password
-        FROM users
-        WHERE email=?
-        """,
-        (email,)
+    token = login_user(
+        form_data.username,
+        form_data.password
     )
 
-    row = cursor.fetchone()
-
-    conn.close()
-
-    if not row:
+    if token is None:
         raise HTTPException(
             status_code=400,
             detail="Invalid credentials"
         )
-
-    user_id, hashed_password = row
-
-    if not verify_password(
-        form_data.password,
-        hashed_password
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid credentials"
-        )
-
-    token = create_access_token(
-        {
-            "sub": str(user_id)
-        }
-    )
 
     return {
         "access_token": token,
