@@ -1,59 +1,38 @@
 from fastapi import APIRouter, Depends
-import sqlite3
 
-from database import DB_PATH
 from auth import get_current_user
+from services.history_service import (
+    get_history,
+    clear_history
+)
 
 router = APIRouter()
 
 
 @router.get("/history")
-def history(current_user: dict = Depends(get_current_user)):
+def history(
+    current_user=Depends(get_current_user)
+):
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT question, answer
-        FROM chat_history
-        WHERE user_id=?
-        ORDER BY id ASC
-        """,
-        (current_user["id"],)
-    )
-
-    rows = cursor.fetchall()
-
-    conn.close()
+    rows = get_history(current_user["id"])
 
     return {
         "history": [
             {
-                "question": row[0],
-                "answer": row[1]
+                "question": r[0],
+                "answer": r[1]
             }
-            for row in rows
+            for r in rows
         ]
     }
 
 
 @router.delete("/clear")
-def clear_chat(current_user: dict = Depends(get_current_user)):
+def clear(
+    current_user=Depends(get_current_user)
+):
 
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        DELETE FROM chat_history
-        WHERE user_id=?
-        """,
-        (current_user["id"],)
-    )
-
-    conn.commit()
-    conn.close()
+    clear_history(current_user["id"])
 
     return {
         "message": "Chat cleared successfully"
