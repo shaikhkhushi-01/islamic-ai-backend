@@ -6,6 +6,7 @@ from services.search_service import search_database
 from ai_engine import ask_groq, handle_greeting
 from hadith_engine import search_hadith
 from quran_engine import search_quran
+from services.citation_service import get_reference
 from utils.logger import logger
 
 
@@ -72,6 +73,8 @@ def process_chat(user_msg, current_user):
 
     logger.info(f"Answer : {reply}")
 
+    reference = get_reference(result["topic"])
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -100,7 +103,8 @@ def process_chat(user_msg, current_user):
     conn.close()
 
     return {
-        "reply": reply,
-        "related_topics": related,
-        "source": context[:150]
-    }
+    "reply": reply,
+    "related_topics": related,
+    "reference": reference,
+    "source": context[:150]
+}
