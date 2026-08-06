@@ -130,7 +130,8 @@ def search_database(user_msg, session_id):
                 conn.close()
 
                 return {
-
+                    
+                    "topic": topic, 
                     "text": reply,
                     "related": related
 
@@ -165,6 +166,7 @@ def search_database(user_msg, session_id):
             conn.close()
 
             return {
+                "topic": last_topic,
 
                 "text": detailed if detailed else content,
 
@@ -183,3 +185,26 @@ def search_database(user_msg, session_id):
         "related": []
 
     }
+
+def get_last_topic(session_id):
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT last_topic
+        FROM chat_memory
+        WHERE session_id=?
+        """,
+        (session_id,)
+    )
+
+    row = cursor.fetchone()
+
+    conn.close()
+
+    if row:
+        return row[0]
+
+    return None
