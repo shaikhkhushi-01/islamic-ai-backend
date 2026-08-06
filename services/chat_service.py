@@ -4,9 +4,12 @@ from datetime import datetime
 from database import DB_PATH
 from services.search_service import search_database
 from ai_engine import ask_groq
+from utils.logger import logger
 
 
 def process_chat(user_msg, current_user):
+
+    logger.info(f"Question : {user_msg}")
 
     session_id = str(current_user["id"])
 
@@ -22,6 +25,8 @@ def process_chat(user_msg, current_user):
         user_msg,
         context
     )
+
+    logger.info(f"Answer : {reply}")
 
     conn = sqlite3.connect(DB_PATH)
 
