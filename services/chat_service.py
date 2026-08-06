@@ -6,7 +6,7 @@ from services.search_service import search_database
 from ai_engine import ask_groq, handle_greeting
 from hadith_engine import search_hadith
 from quran_engine import search_quran
-from services.citation_service import get_reference
+from services.citation_service import extract_references
 from utils.logger import logger
 
 
@@ -38,6 +38,7 @@ def process_chat(user_msg, current_user):
         return {
             "reply": verses,
             "related_topics": [],
+            "references": [],
             "source": "Quran Engine"
         }
 
@@ -57,6 +58,7 @@ def process_chat(user_msg, current_user):
         return {
             "reply": response,
             "related_topics": [],
+            "references": [],
             "source": "Hadith Engine"
         }
 
@@ -66,6 +68,14 @@ def process_chat(user_msg, current_user):
 
     result = search_database(user_msg, session_id)
 
+    if not result:
+        return {
+            "reply": "Sorry, I couldn't find authentic Islamic knowledge related to your question.",
+            "related_topics": [],
+            "references": [],
+            "source": "Knowledge Base"
+        }
+
     context = result["text"]
     related = result["related"]
 
@@ -73,8 +83,10 @@ def process_chat(user_msg, current_user):
 
     logger.info(f"Answer : {reply}")
 
-    reference = get_reference(result["topic"])
+    # Extract Quran/Hadith references from AI reply
+    references = extract_references(reply)
 
+    # Save chat history
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -103,8 +115,8 @@ def process_chat(user_msg, current_user):
     conn.close()
 
     return {
-    "reply": reply,
-    "related_topics": related,
-    "reference": reference,
-    "source": context[:150]
-}
+        "reply": reply,
+        "related_topics": related,
+        "references": references,
+        "source": context[:150]
+    }
