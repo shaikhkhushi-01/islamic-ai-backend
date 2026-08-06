@@ -3,33 +3,56 @@ from datetime import datetime
 
 from database import DB_PATH
 from services.search_service import search_database
-from ai_engine import ask_groq
+from ai_engine import ask_groq, handle_greeting
+from quran_engine import search_quran
 from utils.logger import logger
 
 
 def process_chat(user_msg, current_user):
 
+    # Greeting
+    greeting = handle_greeting(user_msg)
+
+    if greeting:
+        return {
+            "reply": greeting,
+            "related_topics": [],
+            "source": "Greeting Engine"
+        }
+
+    # Quran Search
+    quran_results = search_quran(user_msg)
+
+    if quran_results:
+
+        verses = ""
+
+        for verse in quran_results:
+            verses += (
+                f"📖 {verse['surah']} ({verse['ayah']})\n"
+                f"{verse['text']}\n\n"
+            )
+
+        return {
+            "reply": verses,
+            "related_topics": [],
+            "source": "Quran Engine"
+        }
+
     logger.info(f"Question : {user_msg}")
 
     session_id = str(current_user["id"])
 
-    result = search_database(
-        user_msg,
-        session_id
-    )
+    result = search_database(user_msg, session_id)
 
     context = result["text"]
     related = result["related"]
 
-    reply = ask_groq(
-        user_msg,
-        context
-    )
+    reply = ask_groq(user_msg, context)
 
     logger.info(f"Answer : {reply}")
 
     conn = sqlite3.connect(DB_PATH)
-
     cursor = conn.cursor()
 
     cursor.execute(
