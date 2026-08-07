@@ -21,6 +21,7 @@ from services.search_service import (
 
 from services.citation_service import get_reference
 from services.confidence_service import calculate_confidence
+from services.context_service import has_enough_context
 from services.safety_service import validate_response
 from services.retrieval_service import retrieve_context
 
@@ -139,6 +140,19 @@ else:
 
     related = []
     topic = semantic[0]["topic"]
+
+if not has_enough_context(context):
+
+    return {
+        "reply": (
+            "Sorry, I couldn't find enough authentic "
+            "Islamic evidence to answer this question."
+        ),
+        "related_topics": [],
+        "reference": "",
+        "confidence": "20%",
+        "source": "Knowledge Base"
+    }
 
 reply = ask_groq(
     user_msg,
