@@ -1,4 +1,5 @@
 from sentence_transformers import SentenceTransformer
+from database import DB_PATH
 import faiss
 import numpy as np
 import sqlite3
@@ -6,16 +7,30 @@ import sqlite3
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def build_index():
-    conn = sqlite3.connect("islamic_ai.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("SELECT topic, detailed_content, content FROM knowledge")
     rows = cursor.fetchall()
     conn.close()
 
     texts = []
-    for row in rows:
-        topic, detailed, content = row
-        texts.append(detailed if detailed else content)
+
+CHUNK_SIZE = 500
+
+for row in rows:
+
+    topic, detailed, content = row
+
+    text = detailed if detailed else content
+
+    if not text:
+        continue
+
+    for i in range(0, len(text), CHUNK_SIZE):
+
+        chunk = text[i:i + CHUNK_SIZE]
+
+        texts.append(chunk)
 
     embeddings = model.encode(texts)
 
