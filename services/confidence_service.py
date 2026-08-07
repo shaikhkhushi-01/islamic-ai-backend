@@ -1,4 +1,4 @@
-def calculate_confidence(context: str):
+def calculate_confidence(context):
 
     if not context:
         return "25%"
