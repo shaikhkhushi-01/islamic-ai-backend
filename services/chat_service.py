@@ -1,18 +1,29 @@
 import sqlite3
+import re
 from datetime import datetime
 
 from database import DB_PATH
-from services.search_service import search_database
-from ai_engine import ask_groq, handle_greeting
+
+from ai_engine import (
+    ask_groq,
+    handle_greeting
+)
+
 from hadith_engine import search_hadith
 from quran_engine import search_quran
-from services.citation_service import extract_references
+from rag_engine import semantic_search
+
+from services.query_service import rewrite_query
+from services.search_service import (
+    search_database,
+    get_last_topic
+)
+
+from services.citation_service import get_reference
 from services.confidence_service import calculate_confidence
 from services.safety_service import validate_response
-from services.query_service import rewrite_query
-from services.search_service import get_last_topic
+
 from utils.logger import logger
-import re
 
 def process_chat(user_msg, current_user):
 
@@ -93,7 +104,18 @@ is_follow_up = any(
 
     result = search_database(user_msg, session_id)
 
-    if not result:
+if result:
+
+    context = result["text"]
+    related = result["related"]
+    topic = result["topic"]
+
+else:
+
+    semantic = semantic_search(user_msg)
+
+    if not semantic:
+
         return {
             "reply": "Sorry, I couldn't find authentic Islamic knowledge related to your question.",
             "related_topics": [],
@@ -101,21 +123,34 @@ is_follow_up = any(
             "source": "Knowledge Base"
         }
 
-    context = result["text"]
-    related = result["related"]
+    context = ""
+
+    for item in semantic:
+
+        context += (
+            f"Topic: {item['topic']}\n"
+            f"{item['text']}\n\n"
+        )
+
+    related = []
+    topic = semantic[0]["topic"]
+
+reply = ask_groq(
+    user_msg,
+    context
+)
 
 if not validate_response(reply):
+
     reply = (
         "Sorry, I couldn't verify this response "
         "from authentic Islamic sources."
     )
 
-    reply = ask_groq(user_msg, context)
-
     logger.info(f"Answer : {reply}")
 
     # Extract Quran/Hadith references from AI reply
-    reference = get_reference(result["topic"])
+    reference = get_reference(topic)
     confidence = calculate_confidence(context)
 
     # Save chat history
@@ -147,9 +182,15 @@ if not validate_response(reply):
     conn.close()
 
     return {
+
     "reply": reply,
+
     "related_topics": related,
+
     "reference": reference,
+
     "confidence": confidence,
+
     "source": context[:150]
+
 }
