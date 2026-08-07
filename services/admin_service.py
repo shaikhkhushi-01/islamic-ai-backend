@@ -49,3 +49,30 @@ def get_dashboard_stats():
         "helpful_feedback": helpful,
         "not_helpful_feedback": not_helpful
     }
+
+def get_most_asked_questions():
+
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            question,
+            COUNT(*) as total
+        FROM chat_history
+        GROUP BY question
+        ORDER BY total DESC
+        LIMIT 10
+    """)
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return [
+        {
+            "question": row[0],
+            "count": row[1]
+        }
+        for row in rows
+    ]
