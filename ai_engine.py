@@ -76,7 +76,7 @@ def handle_greeting(message):
 
 # ================= GROQ =================
 
-def ask_groq(question, context):
+def ask_groq(prompt):
 
     prompt = f"""
 You are an Islamic AI Assistant.
@@ -109,15 +109,14 @@ Question:
 
     response = groq_client.chat.completions.create(
 
-        model="llama-3.3-70b-versatile",
+    model="llama-3.3-70b-versatile",
 
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
+    messages=[
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
+)
 
-    )
-
-    return response.choices[0].message.content
+return response.choices[0].message.content
