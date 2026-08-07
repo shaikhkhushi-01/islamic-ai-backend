@@ -7,6 +7,7 @@ from ai_engine import ask_groq, handle_greeting
 from hadith_engine import search_hadith
 from quran_engine import search_quran
 from services.citation_service import extract_references
+from services.confidence_service import calculate_confidence
 from services.search_service import get_last_topic
 from utils.logger import logger
 import re
@@ -104,7 +105,8 @@ is_follow_up = any(
     logger.info(f"Answer : {reply}")
 
     # Extract Quran/Hadith references from AI reply
-    references = extract_references(reply)
+    reference = get_reference(result["topic"])
+    confidence = calculate_confidence(context)
 
     # Save chat history
     conn = sqlite3.connect(DB_PATH)
@@ -135,8 +137,9 @@ is_follow_up = any(
     conn.close()
 
     return {
-        "reply": reply,
-        "related_topics": related,
-        "references": references,
-        "source": context[:150]
-    }
+    "reply": reply,
+    "related_topics": related,
+    "reference": reference,
+    "confidence": confidence,
+    "source": context[:150]
+}
