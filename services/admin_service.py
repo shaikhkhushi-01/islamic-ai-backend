@@ -1,35 +1,51 @@
 import sqlite3
 
 from database import DB_PATH
-from rag_engine import refresh_index
 
 
-def add_topic(topic, content, detailed, reference):
+def get_dashboard_stats():
 
     conn = sqlite3.connect(DB_PATH)
-
     cursor = conn.cursor()
 
+    # Total Users
+    cursor.execute("SELECT COUNT(*) FROM users")
+    users = cursor.fetchone()[0]
+
+    # Total Chats
+    cursor.execute("SELECT COUNT(*) FROM chat_history")
+    chats = cursor.fetchone()[0]
+
+    # Total Knowledge
+    cursor.execute("SELECT COUNT(*) FROM knowledge")
+    knowledge = cursor.fetchone()[0]
+
+    # Helpful Feedback
     cursor.execute(
         """
-        INSERT INTO knowledge
-        (topic,content,type,detailed_content,reference)
-
-        VALUES(?,?,?,?,?)
-        """,
-        (
-            topic,
-            content,
-            "general",
-            detailed,
-            reference
-        )
+        SELECT COUNT(*)
+        FROM feedback
+        WHERE rating='helpful'
+        """
     )
+    helpful = cursor.fetchone()[0]
 
-    conn.commit()
+    # Not Helpful Feedback
+    cursor.execute(
+        """
+        SELECT COUNT(*)
+        FROM feedback
+        WHERE rating='not_helpful'
+        """
+    )
+    not_helpful = cursor.fetchone()[0]
 
     conn.close()
 
-    refresh_index()
-
-    return True
+    return {
+        "total_users": users,
+        "total_chats": chats,
+        "knowledge_topics": knowledge,
+        "helpful_feedback": helpful,
+        "not_helpful_feedback": not_helpful
+    }
