@@ -24,6 +24,7 @@ from services.confidence_service import calculate_confidence
 from services.context_service import has_enough_context
 from services.safety_service import validate_response
 from services.retrieval_service import retrieve_context
+from services.prompt_service import build_prompt
 
 from utils.logger import logger
 
@@ -154,10 +155,12 @@ if not has_enough_context(context):
         "source": "Knowledge Base"
     }
 
-reply = ask_groq(
+prompt = build_prompt(
     user_msg,
     context
 )
+
+reply = ask_groq(prompt)
 
 if not validate_response(reply):
 
