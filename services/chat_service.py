@@ -22,6 +22,7 @@ from services.search_service import (
 from services.citation_service import get_reference
 from services.confidence_service import calculate_confidence
 from services.safety_service import validate_response
+from services.retrieval_service import retrieve_context
 
 from utils.logger import logger
 
@@ -102,12 +103,16 @@ is_follow_up = any(
     for pattern in follow_up_patterns
 )
 
-    result = search_database(user_msg, session_id)
+    retrieval = retrieve_context(
+    user_msg,
+    session_id
+)
 
-if result:
+context = retrieval["context"]
 
-    context = result["text"]
-    related = result["related"]
+related = retrieval["related"]
+
+topic = retrieval["topic"]
     topic = result["topic"]
 
 else:
