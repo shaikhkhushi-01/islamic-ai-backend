@@ -8,6 +8,7 @@ from hadith_engine import search_hadith
 from quran_engine import search_quran
 from services.citation_service import extract_references
 from services.confidence_service import calculate_confidence
+from services.safety_service import validate_response
 from services.search_service import get_last_topic
 from utils.logger import logger
 import re
@@ -99,6 +100,12 @@ is_follow_up = any(
 
     context = result["text"]
     related = result["related"]
+
+if not validate_response(reply):
+    reply = (
+        "Sorry, I couldn't verify this response "
+        "from authentic Islamic sources."
+    )
 
     reply = ask_groq(user_msg, context)
 
