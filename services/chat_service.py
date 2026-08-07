@@ -9,11 +9,14 @@ from quran_engine import search_quran
 from services.citation_service import extract_references
 from services.confidence_service import calculate_confidence
 from services.safety_service import validate_response
+from services.query_service import rewrite_query
 from services.search_service import get_last_topic
 from utils.logger import logger
 import re
 
 def process_chat(user_msg, current_user):
+
+    user_msg = rewrite_query(user_msg)
 
     # Greeting
     greeting = handle_greeting(user_msg)
