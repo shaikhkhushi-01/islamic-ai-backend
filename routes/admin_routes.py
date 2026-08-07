@@ -2,7 +2,10 @@ from fastapi import APIRouter, Depends, Form
 
 from auth import require_admin
 from services.admin_service import add_topic
-from services.admin_service import get_dashboard_stats
+from services.admin_service import (
+    get_dashboard_stats,
+    get_most_asked_questions
+)
 
 router = APIRouter()
 
@@ -33,9 +36,16 @@ def admin_add(
         "message": "Topic added successfully"
     }
 
- @router.get("/dashboard")
+@router.get("/dashboard")
 def dashboard(
     current_user: dict = Depends(require_admin)
 ):
 
     return get_dashboard_stats()
+
+@router.get("/top-questions")
+def top_questions(
+    current_user: dict = Depends(require_admin)
+):
+
+    return get_most_asked_questions()
