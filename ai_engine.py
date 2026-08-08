@@ -75,48 +75,20 @@ def handle_greeting(message):
 
 
 # ================= GROQ =================
+# ================= GROQ =================
 
 def ask_groq(prompt):
 
-    prompt = f"""
-You are an Islamic AI Assistant.
-
-STRICT RULES:
-
-1. Answer ONLY using the provided context.
-
-2. Never invent Quran verses.
-
-3. Never invent Hadith.
-
-4. If the context does not contain enough information,
-reply exactly:
-
-"Sorry, I couldn't find enough authentic Islamic evidence to answer this question."
-
-5. If Quran or Hadith exists in context, quote it.
-
-6. Never guess.
-
-Context:
-
-{context}
-
-Question:
-
-{question}
-"""
-
     response = groq_client.chat.completions.create(
 
-    model="llama-3.3-70b-versatile",
+        model="llama-3.3-70b-versatile",
 
-    messages=[
-        {
-            "role": "user",
-            "content": prompt
-        }
-    ]
-)
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    )
 
-return response.choices[0].message.content
+    return response.choices[0].message.content
