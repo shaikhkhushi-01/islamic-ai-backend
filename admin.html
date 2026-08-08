@@ -1,252 +1,2293 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Admin Panel - Islamic AI</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
-        *{box-sizing:border-box}
-        body{
-            margin:0;
-            font-family:'Segoe UI',Tahoma,sans-serif;
-            background:linear-gradient(rgba(15,61,62,.92),rgba(15,61,62,.92)),
-            url('https://images.unsplash.com/photo-1542816417-0983670d1bb1?q=80&w=1200&auto=format&fit=crop') center/cover no-repeat;
-            min-height:100vh;
-            padding:20px;
-        }
+<title>Islamic AI — Admin Dashboard</title>
 
-        .container{
-            max-width:700px;
-            margin:30px auto;
-            background:#ffffff;
-            padding:30px;
-            border-radius:18px;
-            box-shadow:0 10px 30px rgba(0,0,0,0.25);
-        }
+<style>
+:root{
+    --primary:#0f3d3e;
+    --primary-2:#14595a;
+    --accent:#d4af37;
+    --bg:#f4f7f7;
+    --card:#ffffff;
+    --text:#172b2d;
+    --muted:#718084;
+    --border:#e2e8e8;
+    --success:#198754;
+    --danger:#dc3545;
+    --warning:#d89b00;
+    --shadow:0 12px 35px rgba(15,61,62,.10);
+}
 
-        h2,h3{
-            text-align:center;
-            color:#0f3d3e;
-            margin-bottom:20px;
-        }
+*{
+    box-sizing:border-box;
+}
 
-        .label{
-            font-weight:600;
-            margin-top:15px;
-            display:block;
-            color:#34495e;
-        }
+html{
+    scroll-behavior:smooth;
+}
 
-        input, textarea{
-            width:100%;
-            padding:12px;
-            margin-top:8px;
-            border-radius:10px;
-            border:1px solid #ccc;
-            font-size:14px;
-            outline:none;
-        }
+body{
+    margin:0;
+    font-family:
+        Inter,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+    background:var(--bg);
+    color:var(--text);
+}
 
-        textarea{
-            resize:none;
-        }
+/* ================= LOGIN ================= */
 
-        button{
-            width:100%;
-            padding:12px;
-            margin-top:15px;
-            border:none;
-            border-radius:10px;
-            background:#0f3d3e;
-            color:white;
-            font-size:15px;
-            cursor:pointer;
-            transition:0.3s;
-        }
+.login-page{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:24px;
 
-        button:hover{
-            background:#14595a;
-        }
+    background:
+        linear-gradient(
+            rgba(15,61,62,.94),
+            rgba(15,61,62,.94)
+        ),
+        url("https://images.unsplash.com/photo-1542816417-0983670d1bb1?q=80&w=1600&auto=format&fit=crop")
+        center/cover no-repeat;
+}
 
-        .secondary-btn{
-            background:#2ecc71;
-        }
+.login-card{
+    width:100%;
+    max-width:440px;
+    background:white;
+    border-radius:26px;
+    padding:38px;
+    box-shadow:0 25px 70px rgba(0,0,0,.25);
+}
 
-        .secondary-btn:hover{
-            background:#27ae60;
-        }
+.login-logo{
+    width:70px;
+    height:70px;
+    margin:0 auto 18px;
+    border-radius:22px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:32px;
+    background:#edf6f5;
+}
 
-        .danger-btn{
-            background:#e74c3c;
-        }
+.login-card h1{
+    text-align:center;
+    margin:0;
+    color:var(--primary);
+    font-size:27px;
+}
 
-        .danger-btn:hover{
-            background:#c0392b;
-        }
+.login-subtitle{
+    text-align:center;
+    color:var(--muted);
+    margin:9px 0 30px;
+    font-size:14px;
+}
 
-        .login-section{
-            margin-top:40px;
-            padding-top:20px;
-            border-top:1px solid #eee;
-        }
+.form-group{
+    margin-bottom:18px;
+}
 
-        .status{
-            margin-top:15px;
-            font-weight:bold;
-            text-align:center;
-            color:#2c3e50;
-            background:#ecf0f1;
-            padding:10px;
-            border-radius:8px;
-        }
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:600;
+    font-size:14px;
+}
 
-        .top-actions{
-            display:flex;
-            gap:10px;
-            margin-top:15px;
-        }
+.form-group input,
+.form-group textarea,
+.form-group select{
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:13px 14px;
+    font-size:14px;
+    outline:none;
+    transition:.2s;
+    background:#fff;
+}
 
-        .top-actions button{
-            width:50%;
-        }
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus{
+    border-color:var(--primary-2);
+    box-shadow:0 0 0 3px rgba(20,89,90,.08);
+}
 
-        @media(max-width:600px){
-            .top-actions{
-                flex-direction:column;
-            }
-            .top-actions button{
-                width:100%;
-            }
-        }
-    </style>
+.password-wrap{
+    position:relative;
+}
+
+.password-wrap input{
+    padding-right:75px;
+}
+
+.password-toggle{
+    position:absolute;
+    right:8px;
+    top:7px;
+    border:none;
+    background:#edf3f3;
+    color:var(--primary);
+    border-radius:8px;
+    padding:7px 10px;
+    cursor:pointer;
+}
+
+.primary-btn{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:13px;
+    background:var(--primary);
+    color:white;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.primary-btn:hover{
+    background:var(--primary-2);
+    transform:translateY(-1px);
+}
+
+.login-status{
+    margin-top:15px;
+    display:none;
+    padding:11px 13px;
+    border-radius:10px;
+    font-size:13px;
+}
+
+.login-status.error{
+    display:block;
+    background:#fff0f1;
+    color:#a61b29;
+}
+
+.login-status.success{
+    display:block;
+    background:#edf9f1;
+    color:#176b35;
+}
+
+/* ================= DASHBOARD ================= */
+
+.dashboard{
+    display:none;
+    min-height:100vh;
+}
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    width:255px;
+    background:var(--primary);
+    color:white;
+    padding:22px 16px;
+    z-index:1000;
+    transition:.3s;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:8px 10px 25px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+.brand-icon{
+    width:43px;
+    height:43px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-radius:13px;
+    background:rgba(255,255,255,.12);
+    font-size:21px;
+}
+
+.brand-title{
+    font-weight:800;
+    font-size:16px;
+}
+
+.brand-small{
+    color:rgba(255,255,255,.65);
+    font-size:11px;
+    margin-top:2px;
+}
+
+.nav{
+    margin-top:25px;
+}
+
+.nav-btn{
+    width:100%;
+    border:none;
+    background:transparent;
+    color:rgba(255,255,255,.75);
+    text-align:left;
+    padding:13px 14px;
+    border-radius:11px;
+    margin-bottom:6px;
+    cursor:pointer;
+    font-size:14px;
+    transition:.2s;
+}
+
+.nav-btn:hover,
+.nav-btn.active{
+    background:rgba(255,255,255,.11);
+    color:white;
+}
+
+.sidebar-bottom{
+    position:absolute;
+    bottom:20px;
+    left:16px;
+    right:16px;
+}
+
+.logout-btn{
+    width:100%;
+    border:1px solid rgba(255,255,255,.18);
+    background:rgba(220,53,69,.12);
+    color:#fff;
+    padding:12px;
+    border-radius:11px;
+    cursor:pointer;
+}
+
+.main{
+    margin-left:255px;
+    min-height:100vh;
+}
+
+.topbar{
+    height:74px;
+    background:white;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 30px;
+    position:sticky;
+    top:0;
+    z-index:100;
+}
+
+.menu-btn{
+    display:none;
+    border:none;
+    background:#edf3f3;
+    color:var(--primary);
+    padding:9px 12px;
+    border-radius:9px;
+    cursor:pointer;
+}
+
+.topbar-title{
+    font-weight:800;
+    font-size:18px;
+}
+
+.admin-profile{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.avatar{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:#e7f1f0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:var(--primary);
+    font-weight:800;
+}
+
+.admin-name{
+    font-size:13px;
+    font-weight:700;
+}
+
+.admin-role{
+    font-size:11px;
+    color:var(--muted);
+}
+
+.content{
+    padding:30px;
+    max-width:1450px;
+    margin:auto;
+}
+
+/* ================= PAGE SECTIONS ================= */
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.page-heading{
+    margin-bottom:24px;
+}
+
+.page-heading h1{
+    margin:0 0 7px;
+    font-size:28px;
+}
+
+.page-heading p{
+    margin:0;
+    color:var(--muted);
+}
+
+/* ================= STATS ================= */
+
+.stats{
+    display:grid;
+    grid-template-columns:
+        repeat(3,minmax(0,1fr));
+    gap:18px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:17px;
+    padding:22px;
+    box-shadow:var(--shadow);
+}
+
+.stat-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.stat-icon{
+    width:43px;
+    height:43px;
+    border-radius:12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#edf6f5;
+    font-size:20px;
+}
+
+.stat-number{
+    margin-top:17px;
+    font-size:28px;
+    font-weight:800;
+}
+
+.stat-label{
+    color:var(--muted);
+    font-size:13px;
+    margin-top:4px;
+}
+
+/* ================= CARDS ================= */
+
+.grid-2{
+    display:grid;
+    grid-template-columns:
+        repeat(2,minmax(0,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:17px;
+    padding:23px;
+    box-shadow:var(--shadow);
+    margin-bottom:20px;
+}
+
+.card-title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+}
+
+.card-title h2{
+    margin:0;
+    font-size:17px;
+}
+
+.card-title span{
+    color:var(--muted);
+    font-size:12px;
+}
+
+/* ================= KNOWLEDGE ================= */
+
+textarea{
+    min-height:150px;
+    resize:vertical;
+}
+
+.form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.action-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    border:none;
+    border-radius:10px;
+    padding:11px 16px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:13px;
+    transition:.2s;
+}
+
+.btn-primary{
+    background:var(--primary);
+    color:white;
+}
+
+.btn-primary:hover{
+    background:var(--primary-2);
+}
+
+.btn-secondary{
+    background:#edf3f3;
+    color:var(--primary);
+}
+
+.btn-danger{
+    background:#fff0f1;
+    color:#b42332;
+}
+
+.btn-warning{
+    background:#fff7df;
+    color:#8a6400;
+}
+
+.btn-success{
+    background:#edf9f1;
+    color:#176b35;
+}
+
+.btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+.file-input{
+    border:2px dashed #ccdada;
+    border-radius:14px;
+    padding:25px;
+    text-align:center;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.file-input:hover{
+    border-color:var(--primary-2);
+    background:#fafdfd;
+}
+
+.file-input input{
+    display:none;
+}
+
+.file-icon{
+    font-size:30px;
+    margin-bottom:7px;
+}
+
+.file-text{
+    font-weight:700;
+}
+
+.file-sub{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:5px;
+}
+
+/* ================= STATUS ================= */
+
+.status{
+    display:none;
+    margin-top:15px;
+    padding:12px 14px;
+    border-radius:10px;
+    font-size:13px;
+}
+
+.status.show{
+    display:block;
+}
+
+.status.success{
+    background:#edf9f1;
+    color:#176b35;
+}
+
+.status.error{
+    background:#fff0f1;
+    color:#a61b29;
+}
+
+.status.info{
+    background:#edf6ff;
+    color:#175a92;
+}
+
+/* ================= SECURITY ================= */
+
+.security-box{
+    border-left:4px solid var(--accent);
+    background:#fffaf0;
+    padding:15px;
+    border-radius:10px;
+    color:#6d5721;
+    font-size:13px;
+    line-height:1.6;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:1000px){
+
+    .sidebar{
+        transform:translateX(-100%);
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
+    }
+
+    .main{
+        margin-left:0;
+    }
+
+    .menu-btn{
+        display:block;
+    }
+
+    .stats{
+        grid-template-columns:
+            repeat(2,minmax(0,1fr));
+    }
+}
+
+@media(max-width:700px){
+
+    .content{
+        padding:18px;
+    }
+
+    .topbar{
+        padding:0 18px;
+    }
+
+    .topbar-title{
+        font-size:15px;
+    }
+
+    .admin-name,
+    .admin-role{
+        display:none;
+    }
+
+    .stats,
+    .grid-2,
+    .form-row{
+        grid-template-columns:1fr;
+    }
+
+    .login-card{
+        padding:28px 22px;
+    }
+}
+
+/* ================= DARK MODE ================= */
+
+body.dark{
+    --bg:#101717;
+    --card:#172020;
+    --text:#edf4f4;
+    --muted:#9aabab;
+    --border:#293737;
+}
+
+body.dark .topbar,
+body.dark .card,
+body.dark .stat-card{
+    background:#172020;
+}
+
+body.dark .form-group input,
+body.dark .form-group textarea,
+body.dark .form-group select{
+    background:#111818;
+    color:white;
+    border-color:#334444;
+}
+
+body.dark .btn-secondary{
+    background:#263636;
+    color:white;
+}
+
+body.dark .security-box{
+    background:#211d10;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- ========================================================= -->
+<!-- LOGIN -->
+<!-- ========================================================= -->
 
-    <h2>🛠 Islamic AI Admin Panel</h2>
+<section class="login-page" id="loginPage">
 
-    <div class="top-actions">
-        <button class="secondary-btn" onclick="goChat()">💬 Go to Chatbot</button>
-        <button class="danger-btn" onclick="logout()">🚪 Logout</button>
+    <div class="login-card">
+
+        <div class="login-logo">🕌</div>
+
+        <h1>Islamic AI Admin</h1>
+
+        <p class="login-subtitle">
+            Secure administration dashboard
+        </p>
+
+        <form id="loginForm">
+
+            <div class="form-group">
+                <label>Email</label>
+                <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="admin@example.com"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+
+                <label>Password</label>
+
+                <div class="password-wrap">
+
+                    <input
+                        type="password"
+                        id="loginPassword"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        onclick="togglePassword()"
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+            </div>
+
+            <button
+                class="primary-btn"
+                type="submit"
+                id="loginButton"
+            >
+                🔐 Sign in
+            </button>
+
+        </form>
+
+        <div id="loginStatus" class="login-status"></div>
+
     </div>
 
-    <label class="label">Admin Password</label>
-    <input type="password" id="adminPass" placeholder="Enter admin password">
+</section>
 
-    <label class="label">Topic</label>
-    <input type="text" id="topic" placeholder="Enter topic (e.g. prayer, marriage)">
 
-    <label class="label">Add Islamic Knowledge</label>
-    <textarea id="newText" rows="6" placeholder="Enter Islamic knowledge here..."></textarea>
+<!-- ========================================================= -->
+<!-- DASHBOARD -->
+<!-- ========================================================= -->
 
-    <button onclick="addData()">➕ Add Knowledge</button>
+<section class="dashboard" id="dashboard">
 
-    <p id="status" class="status">Ready</p>
+    <!-- SIDEBAR -->
 
-    <div class="login-section">
+    <aside class="sidebar" id="sidebar">
 
-        <h3>🔐 Admin Login</h3>
+        <div class="brand">
 
-        <input type="text" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Password">
+            <div class="brand-icon">🕌</div>
 
-        <button onclick="login()">Login</button>
+            <div>
+                <div class="brand-title">
+                    Islamic AI
+                </div>
 
-    </div>
+                <div class="brand-small">
+                    Administration
+                </div>
+            </div>
 
-</div>
+        </div>
+
+
+        <nav class="nav">
+
+            <button
+                class="nav-btn active"
+                onclick="showPage('overview',this)"
+            >
+                📊 Overview
+            </button>
+
+            <button
+                class="nav-btn"
+                onclick="showPage('knowledge',this)"
+            >
+                📚 Knowledge
+            </button>
+
+            <button
+                class="nav-btn"
+                onclick="showPage('documents',this)"
+            >
+                📄 Documents
+            </button>
+
+            <button
+                class="nav-btn"
+                onclick="showPage('system',this)"
+            >
+                ⚙️ System
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <button
+                class="logout-btn"
+                onclick="logout()"
+            >
+                🚪 Logout
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div style="display:flex;align-items:center;gap:12px">
+
+                <button
+                    class="menu-btn"
+                    onclick="toggleSidebar()"
+                >
+                    ☰
+                </button>
+
+                <div class="topbar-title">
+                    Admin Dashboard
+                </div>
+
+            </div>
+
+
+            <div class="admin-profile">
+
+                <div class="avatar">
+                    A
+                </div>
+
+                <div>
+
+                    <div
+                        class="admin-name"
+                        id="adminName"
+                    >
+                        Administrator
+                    </div>
+
+                    <div class="admin-role">
+                        Administrator
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <div class="content">
+
+
+            <!-- ================================================= -->
+            <!-- OVERVIEW -->
+            <!-- ================================================= -->
+
+            <section
+                class="page active"
+                id="page-overview"
+            >
+
+                <div class="page-heading">
+
+                    <h1>
+                        Welcome back 👋
+                    </h1>
+
+                    <p>
+                        Manage the Islamic AI knowledge system
+                        from one place.
+                    </p>
+
+                </div>
+
+
+                <div class="stats">
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <div>
+                                📚
+                            </div>
+
+                            <div class="stat-icon">
+                                📖
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="stat-number"
+                            id="knowledgeStatus"
+                        >
+                            Active
+                        </div>
+
+                        <div class="stat-label">
+                            Knowledge Base
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <div>
+                                🧠
+                            </div>
+
+                            <div class="stat-icon">
+                                🔎
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="stat-number"
+                        >
+                            RAG
+                        </div>
+
+                        <div class="stat-label">
+                            Semantic Retrieval
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+
+                            <div>
+                                🛡️
+                            </div>
+
+                            <div class="stat-icon">
+                                🔐
+                            </div>
+
+                        </div>
+
+                        <div
+                            class="stat-number"
+                        >
+                            Secure
+                        </div>
+
+                        <div class="stat-label">
+                            Admin Access
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="grid-2">
+
+                    <div class="card">
+
+                        <div class="card-title">
+
+                            <h2>
+                                ⚡ Quick Actions
+                            </h2>
+
+                        </div>
+
+                        <div class="action-row">
+
+                            <button
+                                class="btn btn-primary"
+                                onclick="showPageById('knowledge')"
+                            >
+                                ➕ Add Knowledge
+                            </button>
+
+                            <button
+                                class="btn btn-success"
+                                onclick="showPageById('documents')"
+                            >
+                                📄 Upload PDF
+                            </button>
+
+                            <button
+                                class="btn btn-secondary"
+                                onclick="goChat()"
+                            >
+                                💬 Open Chat
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="card">
+
+                        <div class="card-title">
+
+                            <h2>
+                                🛡️ Security
+                            </h2>
+
+                        </div>
+
+                        <div class="security-box">
+
+                            Your dashboard is protected by the
+                            backend's admin authorization layer.
+                            Only accounts with the
+                            <strong>admin</strong> role can use
+                            protected admin operations.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <h2>
+                            🕌 Islamic AI System
+                        </h2>
+
+                        <span>
+                            Production dashboard
+                        </span>
+
+                    </div>
+
+                    <p style="color:var(--muted);line-height:1.7;margin:0">
+
+                        Use this dashboard to maintain the
+                        knowledge available to Islamic AI.
+                        Knowledge entries can be added directly
+                        and Islamic books/documents can be
+                        uploaded for retrieval.
+
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- KNOWLEDGE -->
+            <!-- ================================================= -->
+
+            <section
+                class="page"
+                id="page-knowledge"
+            >
+
+                <div class="page-heading">
+
+                    <h1>
+                        Knowledge Management
+                    </h1>
+
+                    <p>
+                        Add verified Islamic knowledge to
+                        the knowledge base.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <h2>
+                            ➕ Add Knowledge
+                        </h2>
+
+                        <span>
+                            Protected admin action
+                        </span>
+
+                    </div>
+
+
+                    <form id="knowledgeForm">
+
+                        <div class="form-row">
+
+                            <div class="form-group">
+
+                                <label>
+                                    Topic
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="topic"
+                                    placeholder="e.g. prayer, zakat, fasting"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label>
+                                    Type
+                                </label>
+
+                                <select id="knowledgeType">
+
+                                    <option value="general">
+                                        General
+                                    </option>
+
+                                    <option value="knowledge">
+                                        Knowledge
+                                    </option>
+
+                                    <option value="quran">
+                                        Quran
+                                    </option>
+
+                                    <option value="hadith">
+                                        Hadith
+                                    </option>
+
+                                    <option value="guidance">
+                                        Guidance
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Short Content
+                            </label>
+
+                            <textarea
+                                id="content"
+                                placeholder="Enter concise Islamic knowledge..."
+                                required
+                            ></textarea>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Detailed Content
+                            </label>
+
+                            <textarea
+                                id="detailed"
+                                placeholder="Enter detailed explanation..."
+                            ></textarea>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Reference
+                            </label>
+
+                            <input
+                                type="text"
+                                id="reference"
+                                placeholder="e.g. Quran 2:183 / Sahih Muslim 1234"
+                            >
+
+                        </div>
+
+
+                        <div class="action-row">
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                                id="addKnowledgeButton"
+                            >
+                                ➕ Add to Knowledge Base
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                onclick="resetKnowledgeForm()"
+                            >
+                                ↺ Reset
+                            </button>
+
+                        </div>
+
+                    </form>
+
+
+                    <div
+                        id="knowledgeStatusMessage"
+                        class="status"
+                    ></div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <h2>
+                            📌 Content Guidelines
+                        </h2>
+
+                    </div>
+
+                    <div class="security-box">
+
+                        Before adding Islamic knowledge,
+                        verify the source and reference.
+                        Avoid adding unverified Quran verses,
+                        fabricated Hadith, or unsupported
+                        religious rulings.
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- DOCUMENTS -->
+            <!-- ================================================= -->
+
+            <section
+                class="page"
+                id="page-documents"
+            >
+
+                <div class="page-heading">
+
+                    <h1>
+                        Document Management
+                    </h1>
+
+                    <p>
+                        Upload Islamic PDF documents into the
+                        knowledge retrieval system.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <h2>
+                            📄 Upload Islamic PDF
+                        </h2>
+
+                        <span>
+                            PDF only
+                        </span>
+
+                    </div>
+
+
+                    <form id="pdfForm">
+
+                        <label
+                            class="file-input"
+                            for="pdfFile"
+                        >
+
+                            <div class="file-icon">
+                                📄
+                            </div>
+
+                            <div
+                                class="file-text"
+                                id="fileName"
+                            >
+                                Choose PDF document
+                            </div>
+
+                            <div class="file-sub">
+                                Click to select an Islamic
+                                knowledge document
+                            </div>
+
+                            <input
+                                type="file"
+                                id="pdfFile"
+                                accept=".pdf,application/pdf"
+                                required
+                            >
+
+                        </label>
+
+
+                        <div
+                            style="margin-top:18px"
+                            class="action-row"
+                        >
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                                id="uploadButton"
+                            >
+                                ⬆️ Upload PDF
+                            </button>
+
+                        </div>
+
+                    </form>
+
+
+                    <div
+                        id="pdfStatus"
+                        class="status"
+                    ></div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <h2>
+                            🔄 Retrieval Pipeline
+                        </h2>
+
+                    </div>
+
+                    <div class="security-box">
+
+                        After a PDF is uploaded successfully,
+                        the backend refreshes the semantic
+                        retrieval index automatically.
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- SYSTEM -->
+            <!-- ================================================= -->
+
+            <section
+                class="page"
+                id="page-system"
+            >
+
+                <div class="page-heading">
+
+                    <h1>
+                        System
+                    </h1>
+
+                    <p>
+                        Dashboard preferences and session
+                        controls.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <h2>
+                            🎨 Appearance
+                        </h2>
+
+                    </div>
+
+                    <div class="action-row">
+
+                        <button
+                            class="btn btn-secondary"
+                            onclick="toggleDarkMode()"
+                        >
+                            🌙 Toggle Dark Mode
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <h2>
+                            🔗 Application
+                        </h2>
+
+                    </div>
+
+                    <div class="action-row">
+
+                        <button
+                            class="btn btn-primary"
+                            onclick="goChat()"
+                        >
+                            💬 Go to Islamic AI
+                        </button>
+
+                        <button
+                            class="btn btn-danger"
+                            onclick="logout()"
+                        >
+                            🚪 Logout
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div class="card-title">
+
+                        <h2>
+                            🔐 Authentication
+                        </h2>
+
+                    </div>
+
+                    <div class="security-box">
+
+                        Authentication is handled by the
+                        FastAPI backend using a bearer JWT.
+                        The dashboard stores the access token
+                        locally and sends it with protected
+                        admin requests.
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</section>
+
 
 <script>
 
-async function addData() {
-    const text = document.getElementById("newText").value;
-    const topic = document.getElementById("topic").value;
-    const password = document.getElementById("adminPass").value;
-    const token = localStorage.getItem("token");
+/* =========================================================
+   CONFIG
+========================================================= */
 
-    if (!text || !password || !topic) {
-        alert("Fill all fields");
-        return;
-    }
+const API_BASE =
+    "https://islamic-ai-backend-b4z6.onrender.com";
 
-    if (!token) {
-        alert("Login first");
-        return;
-    }
 
-    document.getElementById("status").innerText = "Uploading...";
+/* =========================================================
+   DOM
+========================================================= */
 
-    const response = await fetch("https://islamic-ai-backend-b4z6.onrender.com/admin/add", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": "Bearer " + token
-        },
-        body: new URLSearchParams({
-            topic: topic,
-            content: text,
-            detailed: text,
-            reference: ""
-        })
-    });
+const loginPage =
+    document.getElementById("loginPage");
 
-    const data = await response.json();
+const dashboard =
+    document.getElementById("dashboard");
 
-    if(response.status === 401){
-        alert("Unauthorized - login again");
-        return;
-    }
+const loginForm =
+    document.getElementById("loginForm");
 
-    document.getElementById("status").innerText = data.message || "Added successfully";
+const loginStatus =
+    document.getElementById("loginStatus");
 
-    document.getElementById("topic").value = "";
-    document.getElementById("newText").value = "";
+const loginButton =
+    document.getElementById("loginButton");
+
+
+/* =========================================================
+   TOKEN
+========================================================= */
+
+function getToken(){
+    return localStorage.getItem("token");
 }
 
-async function login() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+loginForm.addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const email =
+        document.getElementById("loginEmail")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const password =
+        document.getElementById("loginPassword")
+        .value;
 
     if(!email || !password){
-        alert("Enter email & password");
+
+        showLoginStatus(
+            "Please enter email and password.",
+            "error"
+        );
+
         return;
     }
 
-    const formData = new URLSearchParams();
-    formData.append("username", email);
-    formData.append("password", password);
+    loginButton.disabled = true;
+    loginButton.innerText = "Signing in...";
 
-    const res = await fetch("https://islamic-ai-backend-b4z6.onrender.com/login",{
-        method:"POST",
-        headers:{
-            "Content-Type":"application/x-www-form-urlencoded"
-        },
-        body: formData
+    try{
+
+        /*
+         FastAPI OAuth2PasswordRequestForm expects:
+
+         username=email
+         password=password
+        */
+
+        const body =
+            new URLSearchParams();
+
+        body.append("username", email);
+        body.append("password", password);
+
+        const response =
+            await fetch(
+                API_BASE + "/login",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/x-www-form-urlencoded"
+                    },
+
+                    body:body.toString()
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.detail ||
+                "Invalid credentials."
+            );
+        }
+
+        if(!data.access_token){
+
+            throw new Error(
+                "Server did not return an access token."
+            );
+        }
+
+        localStorage.setItem(
+            "token",
+            data.access_token
+        );
+
+        localStorage.setItem(
+            "admin_email",
+            email
+        );
+
+        showLoginStatus(
+            "Login successful. Opening dashboard...",
+            "success"
+        );
+
+        setTimeout(
+            openDashboard,
+            400
+        );
+
+    }catch(error){
+
+        showLoginStatus(
+            error.message ||
+            "Login failed.",
+            "error"
+        );
+
+    }finally{
+
+        loginButton.disabled = false;
+        loginButton.innerText = "🔐 Sign in";
+
+    }
+
+});
+
+
+/* =========================================================
+   OPEN DASHBOARD
+========================================================= */
+
+function openDashboard(){
+
+    loginPage.style.display = "none";
+    dashboard.style.display = "block";
+
+    const email =
+        localStorage.getItem("admin_email");
+
+    if(email){
+
+        document.getElementById(
+            "adminName"
+        ).innerText = email;
+
+    }
+
+}
+
+
+/* =========================================================
+   AUTO LOGIN UI
+========================================================= */
+
+window.addEventListener(
+    "DOMContentLoaded",
+    function(){
+
+        if(getToken()){
+
+            openDashboard();
+
+        }
+
+        if(
+            localStorage.getItem("theme")
+            === "dark"
+        ){
+
+            document.body.classList.add("dark");
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   LOGIN STATUS
+========================================================= */
+
+function showLoginStatus(message,type){
+
+    loginStatus.innerText = message;
+
+    loginStatus.className =
+        "login-status " + type;
+
+}
+
+
+/* =========================================================
+   PASSWORD
+========================================================= */
+
+function togglePassword(){
+
+    const input =
+        document.getElementById("loginPassword");
+
+    const button =
+        document.querySelector(
+            ".password-toggle"
+        );
+
+    if(input.type === "password"){
+
+        input.type = "text";
+        button.innerText = "Hide";
+
+    }else{
+
+        input.type = "password";
+        button.innerText = "Show";
+
+    }
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function showPage(page,button){
+
+    document
+        .querySelectorAll(".page")
+        .forEach(
+            p => p.classList.remove("active")
+        );
+
+    document
+        .getElementById("page-" + page)
+        .classList.add("active");
+
+    document
+        .querySelectorAll(".nav-btn")
+        .forEach(
+            b => b.classList.remove("active")
+        );
+
+    if(button){
+        button.classList.add("active");
+    }
+
+    document
+        .getElementById("sidebar")
+        .classList.remove("open");
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
     });
 
-    const data = await res.json();
-
-    if(res.status !== 200){
-        alert("Login failed");
-        return;
-    }
-
-    localStorage.setItem("token", data.access_token);
-    alert("Login Successful");
-    document.getElementById("status").innerText = "Admin logged in";
 }
+
+
+function showPageById(page){
+
+    const buttons =
+        document.querySelectorAll(".nav-btn");
+
+    let targetButton = null;
+
+    buttons.forEach(button => {
+
+        if(
+            button.getAttribute("onclick")
+            &&
+            button.getAttribute("onclick")
+                .includes("'" + page + "'")
+        ){
+
+            targetButton = button;
+
+        }
+
+    });
+
+    showPage(page,targetButton);
+
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+function toggleSidebar(){
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+
+/* =========================================================
+   ADD KNOWLEDGE
+========================================================= */
+
+document
+.getElementById("knowledgeForm")
+.addEventListener(
+    "submit",
+    async function(e){
+
+        e.preventDefault();
+
+        const token = getToken();
+
+        if(!token){
+
+            logout();
+            return;
+
+        }
+
+        const topic =
+            document
+            .getElementById("topic")
+            .value
+            .trim();
+
+        const content =
+            document
+            .getElementById("content")
+            .value
+            .trim();
+
+        const detailed =
+            document
+            .getElementById("detailed")
+            .value
+            .trim();
+
+        const reference =
+            document
+            .getElementById("reference")
+            .value
+            .trim();
+
+        const type =
+            document
+            .getElementById("knowledgeType")
+            .value;
+
+        if(!topic || !content){
+
+            showStatus(
+                "knowledgeStatusMessage",
+                "Topic and short content are required.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        const button =
+            document
+            .getElementById(
+                "addKnowledgeButton"
+            );
+
+        button.disabled = true;
+        button.innerText = "Adding...";
+
+        try{
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "topic",
+                topic
+            );
+
+            formData.append(
+                "content",
+                content
+            );
+
+            formData.append(
+                "detailed",
+                detailed
+            );
+
+            formData.append(
+                "reference",
+                reference
+            );
+
+            /*
+             Existing backend accepts
+             topic, content, detailed, reference.
+
+             Type is not currently accepted by
+             the existing /admin/add route,
+             so it is intentionally not sent.
+            */
+
+            const response =
+                await fetch(
+                    API_BASE + "/admin/add",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            Authorization:
+                                "Bearer " + token
+                        },
+
+                        body:formData
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if(response.status === 401){
+
+                logout();
+                return;
+
+            }
+
+            if(response.status === 403){
+
+                throw new Error(
+                    "Admin access required. This account is not an administrator."
+                );
+
+            }
+
+            if(!response.ok){
+
+                throw new Error(
+                    data.detail ||
+                    "Could not add knowledge."
+                );
+
+            }
+
+            showStatus(
+                "knowledgeStatusMessage",
+                "Knowledge added successfully.",
+                "success"
+            );
+
+            resetKnowledgeForm();
+
+        }catch(error){
+
+            showStatus(
+                "knowledgeStatusMessage",
+                error.message ||
+                "Something went wrong.",
+                "error"
+            );
+
+        }finally{
+
+            button.disabled = false;
+            button.innerText =
+                "➕ Add to Knowledge Base";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   RESET KNOWLEDGE
+========================================================= */
+
+function resetKnowledgeForm(){
+
+    document
+    .getElementById("knowledgeForm")
+    .reset();
+
+}
+
+
+/* =========================================================
+   PDF FILE
+========================================================= */
+
+document
+.getElementById("pdfFile")
+.addEventListener(
+    "change",
+    function(){
+
+        const file =
+            this.files[0];
+
+        document
+        .getElementById("fileName")
+        .innerText =
+            file
+            ? file.name
+            : "Choose PDF document";
+
+    }
+);
+
+
+/* =========================================================
+   PDF UPLOAD
+========================================================= */
+
+document
+.getElementById("pdfForm")
+.addEventListener(
+    "submit",
+    async function(e){
+
+        e.preventDefault();
+
+        const token = getToken();
+
+        if(!token){
+
+            logout();
+            return;
+
+        }
+
+        const file =
+            document
+            .getElementById("pdfFile")
+            .files[0];
+
+        if(!file){
+
+            showStatus(
+                "pdfStatus",
+                "Please select a PDF file.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        if(
+            file.type !== "application/pdf"
+            &&
+            !file.name
+                .toLowerCase()
+                .endsWith(".pdf")
+        ){
+
+            showStatus(
+                "pdfStatus",
+                "Only PDF files are allowed.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        const button =
+            document
+            .getElementById("uploadButton");
+
+        button.disabled = true;
+        button.innerText = "Uploading...";
+
+        try{
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "file",
+                file
+            );
+
+            const response =
+                await fetch(
+                    API_BASE + "/admin/upload-pdf",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            Authorization:
+                                "Bearer " + token
+                        },
+
+                        body:formData
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if(response.status === 401){
+
+                logout();
+                return;
+
+            }
+
+            if(response.status === 403){
+
+                throw new Error(
+                    "Admin access required."
+                );
+
+            }
+
+            if(!response.ok){
+
+                throw new Error(
+                    data.detail ||
+                    "PDF upload failed."
+                );
+
+            }
+
+            showStatus(
+                "pdfStatus",
+                "PDF uploaded successfully. The retrieval index was refreshed.",
+                "success"
+            );
+
+            document
+            .getElementById("pdfForm")
+            .reset();
+
+            document
+            .getElementById("fileName")
+            .innerText =
+                "Choose PDF document";
+
+        }catch(error){
+
+            showStatus(
+                "pdfStatus",
+                error.message ||
+                "PDF upload failed.",
+                "error"
+            );
+
+        }finally{
+
+            button.disabled = false;
+            button.innerText =
+                "⬆️ Upload PDF";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function showStatus(
+    id,
+    message,
+    type
+){
+
+    const element =
+        document.getElementById(id);
+
+    element.innerText = message;
+
+    element.className =
+        "status show " + type;
+
+}
+
+
+/* =========================================================
+   CHAT
+========================================================= */
 
 function goChat(){
-    window.location.href = "index.html";
+
+    window.location.href =
+        "./index.html";
+
 }
 
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
 function logout(){
+
     localStorage.removeItem("token");
-    alert("Logged out");
-    location.reload();
+    localStorage.removeItem("admin_email");
+
+    dashboard.style.display = "none";
+    loginPage.style.display = "flex";
+
+    document
+    .getElementById("loginPassword")
+    .value = "";
+
+    showLoginStatus(
+        "You have been logged out.",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+function toggleDarkMode(){
+
+    document
+    .body
+    .classList
+    .toggle("dark");
+
+    localStorage.setItem(
+        "theme",
+        document
+        .body
+        .classList
+        .contains("dark")
+        ? "dark"
+        : "light"
+    );
+
+}
+
+function toggleDarkMode(){
+
+    document
+        .body
+        .classList
+        .toggle("dark");
+
+    localStorage.setItem(
+        "theme",
+        document
+        .body
+        .classList
+        .contains("dark")
+        ? "dark"
+        : "light"
+    );
+
 }
 
 </script>
