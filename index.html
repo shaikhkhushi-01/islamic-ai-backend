@@ -9,9 +9,9 @@
 
 <style>
 
-/* =========================
-   GLOBAL
-========================= */
+/* =========================================================
+   1. GLOBAL
+========================================================= */
 
 * {
     box-sizing: border-box;
@@ -22,41 +22,50 @@
     --primary-light: #14595a;
     --gold: #c9a227;
 
-    --background: #eef3f2;
+    --page-bg: #eef3f2;
     --chat-bg: #f7f9f9;
-    --white: #ffffff;
+    --surface: #ffffff;
 
     --text: #1f2937;
     --muted: #6b7280;
 
-    --user-bg: #d8eeee;
+    --user-bg: #d9eeee;
     --bot-bg: #ffffff;
 
-    --border: #e2e8e8;
+    --border: #e1e8e8;
+
+    --success: #198754;
+    --danger: #c0392b;
 
     --shadow:
-        0 20px 50px rgba(0,0,0,.18);
+        0 20px 55px rgba(0, 0, 0, .18);
 }
 
 body.dark {
-    --background: #071a1b;
-    --chat-bg: #0d2425;
-    --white: #132b2c;
+    --page-bg: #06191a;
+    --chat-bg: #0b2021;
+    --surface: #122a2b;
 
     --text: #f1f5f5;
     --muted: #a9bcbc;
 
     --user-bg: #124e50;
-    --bot-bg: #183233;
+    --bot-bg: #183334;
 
-    --border: #294546;
+    --border: #294748;
 
     --shadow:
-        0 20px 60px rgba(0,0,0,.45);
+        0 20px 60px rgba(0, 0, 0, .5);
+}
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
 }
 
 body {
-    margin: 0;
     min-height: 100vh;
 
     font-family:
@@ -67,38 +76,38 @@ body {
 
     background:
         linear-gradient(
-            rgba(15,61,62,.94),
-            rgba(15,61,62,.94)
+            rgba(15, 61, 62, .94),
+            rgba(15, 61, 62, .94)
         ),
-        url("https://images.unsplash.com/photo-1564769625905-50e93615e769?q=80&w=1200&auto=format&fit=crop")
-        center/cover no-repeat;
+        url("https://images.unsplash.com/photo-1564769625905-50e93615e769?q=80&w=1600&auto=format&fit=crop")
+        center / cover fixed no-repeat;
 
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 
     padding: 20px;
+
+    color: var(--text);
 }
 
 
-/* =========================
-   CHAT CONTAINER
-========================= */
+/* =========================================================
+   2. MAIN CONTAINER
+========================================================= */
 
 .chat-container {
+    width: min(100%, 480px);
+    height: min(800px, 94vh);
 
-    width: min(100%, 470px);
-
-    height: min(760px, 94vh);
-
-    background: var(--white);
+    background: var(--surface);
 
     border-radius: 24px;
 
+    overflow: hidden;
+
     display: flex;
     flex-direction: column;
-
-    overflow: hidden;
 
     box-shadow: var(--shadow);
 
@@ -106,60 +115,47 @@ body {
 }
 
 
-/* =========================
-   HEADER
-========================= */
+/* =========================================================
+   3. HEADER
+========================================================= */
 
 .header {
-
     position: relative;
 
     background: var(--primary);
 
     color: white;
 
-    padding: 18px 70px;
-
     text-align: center;
+
+    padding: 17px 75px 16px;
 
     border-bottom: 3px solid var(--gold);
 }
 
 .header-title {
-
     font-size: 17px;
-
     font-weight: 700;
+}
+
+.header-subtitle {
+    margin-top: 4px;
+
+    font-size: 10px;
+
+    opacity: .75;
 
     letter-spacing: .2px;
 }
 
-.header-subtitle {
-
-    font-size: 11px;
-
-    opacity: .75;
-
-    margin-top: 4px;
-}
-
-
-/* =========================
-   HEADER BUTTONS
-========================= */
-
 .header-btn {
-
     position: absolute;
 
-    top: 15px;
+    top: 14px;
 
-    border: none;
-
-    width: 34px;
     height: 34px;
 
-    border-radius: 50%;
+    border: none;
 
     color: white;
 
@@ -171,42 +167,39 @@ body {
 }
 
 .header-btn:hover {
-
     background: rgba(255,255,255,.22);
-
     transform: translateY(-1px);
 }
 
 .theme-btn {
-
     left: 14px;
+
+    width: 34px;
+
+    border-radius: 50%;
 }
 
 .clear-btn {
-
     right: 14px;
-
-    font-size: 11px;
-
-    width: auto;
 
     padding: 0 12px;
 
     border-radius: 18px;
+
+    font-size: 11px;
 }
 
 
-/* =========================
-   CHAT AREA
-========================= */
+/* =========================================================
+   4. CHAT AREA
+========================================================= */
 
 .chat-box {
-
     flex: 1;
 
-    padding: 18px 14px;
-
     overflow-y: auto;
+
+    padding: 18px 13px;
 
     background: var(--chat-bg);
 
@@ -214,99 +207,91 @@ body {
 }
 
 .chat-box::-webkit-scrollbar {
-
     width: 6px;
 }
 
 .chat-box::-webkit-scrollbar-thumb {
-
-    background: #9bb2b2;
-
-    border-radius: 10px;
+    background: #9eb2b2;
+    border-radius: 20px;
 }
 
 
-/* =========================
-   WELCOME MESSAGE
-========================= */
+/* =========================================================
+   5. WELCOME / EMPTY STATE
+========================================================= */
 
 .welcome {
-
     text-align: center;
 
-    padding: 35px 20px;
+    padding: 42px 20px;
 
     color: var(--muted);
 }
 
 .welcome-icon {
+    width: 68px;
+    height: 68px;
 
-    width: 62px;
-    height: 62px;
-
-    margin: auto;
+    margin: 0 auto 15px;
 
     border-radius: 50%;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
-    font-size: 30px;
+    font-size: 31px;
 
-    background: rgba(15,61,62,.1);
+    background: rgba(15,61,62,.09);
 
     border: 1px solid rgba(15,61,62,.15);
 }
 
 .welcome h3 {
-
-    margin: 14px 0 6px;
+    margin: 0 0 8px;
 
     color: var(--text);
 
-    font-size: 18px;
+    font-size: 19px;
 }
 
 .welcome p {
+    margin: 0 auto;
 
-    margin: 0;
+    max-width: 320px;
 
     font-size: 13px;
 
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
 
-/* =========================
-   MESSAGE ROW
-========================= */
+/* =========================================================
+   6. MESSAGE ROW
+========================================================= */
 
 .message-row {
-
     display: flex;
+
+    align-items: flex-end;
 
     margin: 10px 0;
 
     animation: messageIn .25s ease;
 }
 
-.message-row.user-row {
-
+.user-row {
     justify-content: flex-end;
 }
 
-.message-row.bot-row {
-
+.bot-row {
     justify-content: flex-start;
 }
 
 @keyframes messageIn {
-
     from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(7px);
     }
 
     to {
@@ -316,51 +301,44 @@ body {
 }
 
 
-/* =========================
-   AVATAR
-========================= */
+/* =========================================================
+   7. AVATARS
+========================================================= */
 
 .avatar {
+    width: 31px;
+    height: 31px;
 
-    width: 32px;
-    height: 32px;
-
-    flex: 0 0 32px;
+    flex: 0 0 31px;
 
     border-radius: 50%;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
     margin: 0 7px;
 
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .bot-avatar {
-
     background: var(--primary);
-
     color: white;
 }
 
 .user-avatar {
-
-    background: #d5e8e8;
-
+    background: #d4e7e7;
     color: var(--primary);
 }
 
 
-/* =========================
-   MESSAGE BUBBLE
-========================= */
+/* =========================================================
+   8. MESSAGE BUBBLES
+========================================================= */
 
 .message {
-
-    max-width: 78%;
+    max-width: 79%;
 
     padding: 11px 14px;
 
@@ -368,40 +346,35 @@ body {
 
     font-size: 14px;
 
-    line-height: 1.6;
+    line-height: 1.65;
 
     white-space: pre-wrap;
 
-    word-wrap: break-word;
+    overflow-wrap: anywhere;
 
-    color: var(--text);
-
-    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    box-shadow:
+        0 2px 8px rgba(0,0,0,.05);
 }
 
 .user-message {
-
     background: var(--user-bg);
+
+    color: var(--text);
 
     border-bottom-right-radius: 5px;
 }
 
 .bot-message {
-
     background: var(--bot-bg);
+
+    color: var(--text);
 
     border: 1px solid var(--border);
 
     border-bottom-left-radius: 5px;
 }
 
-
-/* =========================
-   MESSAGE TIME
-========================= */
-
 .message-time {
-
     display: block;
 
     margin-top: 5px;
@@ -414,36 +387,76 @@ body {
 }
 
 
-/* =========================
-   INFO CARD
-========================= */
+/* =========================================================
+   9. ISLAMIC CONTENT FORMATTING
+========================================================= */
 
-.info-card {
+.bot-message .quran-block,
+.bot-message .hadith-block {
+    display: block;
 
-    margin: 5px 42px;
+    margin-top: 8px;
+
+    padding: 9px 10px;
+
+    border-left: 3px solid var(--gold);
+
+    background: rgba(201,162,39,.08);
+
+    border-radius: 7px;
+}
+
+.reference-card {
+    margin: 6px 40px;
 
     padding: 9px 12px;
 
-    border-radius: 12px;
+    border-radius: 11px;
 
-    background: rgba(15,61,62,.07);
+    background: rgba(201,162,39,.08);
+
+    border: 1px solid rgba(201,162,39,.25);
+
+    color: var(--text);
+
+    font-size: 11px;
+
+    line-height: 1.55;
+}
+
+.reference-card strong {
+    color: var(--gold);
+}
+
+
+/* =========================================================
+   10. INFO CARDS
+========================================================= */
+
+.info-card {
+    margin: 5px 40px;
+
+    padding: 8px 11px;
+
+    border-radius: 10px;
+
+    background: rgba(15,61,62,.06);
 
     border: 1px solid var(--border);
 
     color: var(--muted);
 
-    font-size: 11px;
+    font-size: 10px;
 
     line-height: 1.5;
 }
 
 
-/* =========================
-   TYPING INDICATOR
-========================= */
+/* =========================================================
+   11. TYPING INDICATOR
+========================================================= */
 
 .typing {
-
     display: flex;
 
     align-items: center;
@@ -454,7 +467,6 @@ body {
 }
 
 .typing span {
-
     width: 7px;
     height: 7px;
 
@@ -474,10 +486,9 @@ body {
 }
 
 @keyframes typing {
-
     0%, 60%, 100% {
         transform: translateY(0);
-        opacity: .4;
+        opacity: .35;
     }
 
     30% {
@@ -487,46 +498,42 @@ body {
 }
 
 
-/* =========================
-   RELATED TOPICS
-========================= */
+/* =========================================================
+   12. RELATED TOPICS
+========================================================= */
 
 #related-topics {
-
     display: flex;
+
+    align-items: center;
 
     gap: 7px;
 
-    padding: 9px 12px;
+    padding: 8px 11px;
 
     overflow-x: auto;
 
     white-space: nowrap;
 
-    background: var(--white);
+    background: var(--surface);
 
     border-top: 1px solid var(--border);
 }
 
 #related-topics:empty {
-
     display: none;
 }
 
 .related-title {
-
-    font-size: 10px;
+    flex: 0 0 auto;
 
     color: var(--muted);
 
-    align-self: center;
-
-    flex: 0 0 auto;
+    font-size: 10px;
 }
 
 .related-btn {
-
-    width: auto;
+    flex: 0 0 auto;
 
     margin: 0;
 
@@ -548,7 +555,6 @@ body {
 }
 
 .related-btn:hover {
-
     background: var(--primary);
 
     color: white;
@@ -557,32 +563,32 @@ body {
 }
 
 
-/* =========================
-   INPUT AREA
-========================= */
+/* =========================================================
+   13. INPUT AREA
+========================================================= */
 
 .input-area {
-
     display: flex;
 
     align-items: center;
 
     gap: 7px;
 
-    padding: 11px;
+    padding: 10px;
 
-    background: var(--white);
+    background: var(--surface);
 
     border-top: 1px solid var(--border);
 }
 
 #userInput {
-
     flex: 1;
 
     min-width: 0;
 
-    padding: 12px 15px;
+    height: 42px;
+
+    padding: 0 15px;
 
     border-radius: 22px;
 
@@ -599,21 +605,21 @@ body {
     transition: .2s;
 }
 
-#userInput:focus {
+#userInput::placeholder {
+    color: var(--muted);
+}
 
+#userInput:focus {
     border-color: var(--primary);
 }
 
 .input-btn {
-
     width: 40px;
     height: 40px;
 
     flex: 0 0 40px;
 
     padding: 0;
-
-    margin: 0;
 
     border: none;
 
@@ -629,39 +635,34 @@ body {
 }
 
 .input-btn:hover {
-
     background: var(--primary-light);
 
     transform: translateY(-1px);
 }
 
 .send-btn {
-
     width: auto;
 
-    padding: 0 17px;
+    padding: 0 16px;
 
     border-radius: 20px;
 }
 
 
-/* =========================
-   RESPONSIVE
-========================= */
+/* =========================================================
+   14. MOBILE
+========================================================= */
 
 @media (max-width: 600px) {
 
     body {
-
         padding: 0;
 
         align-items: stretch;
     }
 
     .chat-container {
-
         width: 100%;
-
         height: 100vh;
 
         max-height: none;
@@ -670,14 +671,33 @@ body {
     }
 
     .message {
-
         max-width: 84%;
     }
 
     .header {
-
         padding-top: 16px;
         padding-bottom: 16px;
+    }
+}
+
+@media (max-width: 390px) {
+
+    .send-btn {
+        font-size: 0;
+
+        width: 40px;
+
+        padding: 0;
+    }
+
+    .send-btn::after {
+        content: "➤";
+
+        font-size: 15px;
+    }
+
+    .message {
+        font-size: 13px;
     }
 }
 
@@ -689,12 +709,16 @@ body {
 
 <div class="chat-container">
 
-    <!-- HEADER -->
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
 
     <div class="header">
 
         <button
             class="header-btn theme-btn"
+            id="themeButton"
             onclick="toggleTheme()"
             title="Toggle theme">
             🌙
@@ -705,7 +729,7 @@ body {
         </div>
 
         <div class="header-subtitle">
-            Quran • Hadith • Islamic Guidance
+            Quran • Hadith • Islamic Knowledge
         </div>
 
         <button
@@ -717,7 +741,9 @@ body {
     </div>
 
 
-    <!-- CHAT -->
+    <!-- =====================================================
+         CHAT
+    ====================================================== -->
 
     <div
         class="chat-box"
@@ -737,8 +763,8 @@ body {
 
             <p>
                 Ask me about Quran, Hadith,
-                Salah, Ramadan, Dua or
-                Islamic guidance.
+                Salah, Ramadan, Dua,
+                or Islamic guidance.
             </p>
 
         </div>
@@ -746,12 +772,16 @@ body {
     </div>
 
 
-    <!-- RELATED -->
+    <!-- =====================================================
+         RELATED TOPICS
+    ====================================================== -->
 
     <div id="related-topics"></div>
 
 
-    <!-- INPUT -->
+    <!-- =====================================================
+         INPUT
+    ====================================================== -->
 
     <div class="input-area">
 
@@ -760,6 +790,7 @@ body {
             id="userInput"
             placeholder="Ask something about Islam..."
             autocomplete="off"
+            maxlength="2000"
             onkeypress="handleEnter(event)"
         >
 
@@ -772,7 +803,8 @@ body {
 
         <button
             class="input-btn send-btn"
-            onclick="sendMessage()">
+            onclick="sendMessage()"
+            title="Send">
             Send
         </button>
 
@@ -783,9 +815,9 @@ body {
 
 <script>
 
-/* =========================
+/* =========================================================
    CONFIG
-========================= */
+========================================================= */
 
 const API_URL =
     "https://islamic-ai-backend-b4z6.onrender.com";
@@ -802,10 +834,23 @@ const input =
 const relatedBox =
     document.getElementById("related-topics");
 
+const themeButton =
+    document.getElementById("themeButton");
 
-/* =========================
-   INITIAL LOAD
-========================= */
+
+/* =========================================================
+   AUTH CHECK
+========================================================= */
+
+if (!token) {
+
+    window.location.href = "login.html";
+}
+
+
+/* =========================================================
+   LOAD
+========================================================= */
 
 window.addEventListener(
     "load",
@@ -813,14 +858,27 @@ window.addEventListener(
 );
 
 
-/* =========================
-   ADD MESSAGE
-========================= */
+/* =========================================================
+   TIME
+========================================================= */
 
-function addMsg(
-    text,
-    type
-) {
+function getTime() {
+
+    return new Date().toLocaleTimeString(
+        [],
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+}
+
+
+/* =========================================================
+   REMOVE WELCOME
+========================================================= */
+
+function removeWelcome() {
 
     const welcome =
         document.getElementById("welcome");
@@ -828,16 +886,27 @@ function addMsg(
     if (welcome) {
         welcome.remove();
     }
+}
 
+
+/* =========================================================
+   ADD MESSAGE
+========================================================= */
+
+function addMsg(text, type) {
+
+    removeWelcome();
 
     const row =
         document.createElement("div");
 
     row.className =
         "message-row " +
-        (type === "user"
-            ? "user-row"
-            : "bot-row");
+        (
+            type === "user"
+                ? "user-row"
+                : "bot-row"
+        );
 
 
     const avatar =
@@ -845,11 +914,13 @@ function addMsg(
 
     avatar.className =
         "avatar " +
-        (type === "user"
-            ? "user-avatar"
-            : "bot-avatar");
+        (
+            type === "user"
+                ? "user-avatar"
+                : "bot-avatar"
+        );
 
-    avatar.innerText =
+    avatar.textContent =
         type === "user"
             ? "👤"
             : "🤖";
@@ -860,12 +931,21 @@ function addMsg(
 
     bubble.className =
         "message " +
-        (type === "user"
-            ? "user-message"
-            : "bot-message");
+        (
+            type === "user"
+                ? "user-message"
+                : "bot-message"
+        );
 
-    bubble.innerText =
-        text;
+
+    /*
+       textContent is intentionally used here.
+       This prevents AI text from being interpreted
+       as HTML.
+    */
+
+    bubble.textContent =
+        text || "";
 
 
     const time =
@@ -874,14 +954,8 @@ function addMsg(
     time.className =
         "message-time";
 
-    time.innerText =
-        new Date().toLocaleTimeString(
-            [],
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
+    time.textContent =
+        getTime();
 
 
     bubble.appendChild(time);
@@ -898,7 +972,6 @@ function addMsg(
         row.appendChild(avatar);
 
         row.appendChild(bubble);
-
     }
 
 
@@ -908,11 +981,13 @@ function addMsg(
 }
 
 
-/* =========================
-   INFO MESSAGE
-========================= */
+/* =========================================================
+   INFO CARD
+========================================================= */
 
 function addInfo(text) {
+
+    if (!text) return;
 
     const card =
         document.createElement("div");
@@ -920,7 +995,7 @@ function addInfo(text) {
     card.className =
         "info-card";
 
-    card.innerText =
+    card.textContent =
         text;
 
     chatBox.appendChild(card);
@@ -929,11 +1004,52 @@ function addInfo(text) {
 }
 
 
-/* =========================
+/* =========================================================
+   REFERENCE CARD
+========================================================= */
+
+function addReference(reference) {
+
+    if (!reference) return;
+
+    const card =
+        document.createElement("div");
+
+    card.className =
+        "reference-card";
+
+
+    const title =
+        document.createElement("strong");
+
+    title.textContent =
+        "📖 Reference";
+
+
+    const text =
+        document.createElement("span");
+
+    text.textContent =
+        " " + reference;
+
+
+    card.appendChild(title);
+
+    card.appendChild(text);
+
+    chatBox.appendChild(card);
+
+    scrollBottom();
+}
+
+
+/* =========================================================
    TYPING
-========================= */
+========================================================= */
 
 function showTyping() {
+
+    removeTyping();
 
     const row =
         document.createElement("div");
@@ -951,7 +1067,7 @@ function showTyping() {
     avatar.className =
         "avatar bot-avatar";
 
-    avatar.innerText =
+    avatar.textContent =
         "🤖";
 
 
@@ -962,10 +1078,13 @@ function showTyping() {
         "message bot-message typing";
 
 
-    bubble.innerHTML =
-        "<span></span>" +
-        "<span></span>" +
-        "<span></span>";
+    for (let i = 0; i < 3; i++) {
+
+        const dot =
+            document.createElement("span");
+
+        bubble.appendChild(dot);
+    }
 
 
     row.appendChild(avatar);
@@ -991,9 +1110,9 @@ function removeTyping() {
 }
 
 
-/* =========================
-   SEND MESSAGE
-========================= */
+/* =========================================================
+   SEND
+========================================================= */
 
 async function sendMessage() {
 
@@ -1003,14 +1122,25 @@ async function sendMessage() {
     if (!message) return;
 
 
+    if (!token) {
+
+        window.location.href =
+            "login.html";
+
+        return;
+    }
+
+
     addMsg(
         message,
         "user"
     );
 
+
     input.value = "";
 
     relatedBox.innerHTML = "";
+
 
     showTyping();
 
@@ -1042,16 +1172,21 @@ async function sendMessage() {
 
             removeTyping();
 
-            alert(
-                "Session expired. Please login again."
-            );
-
             localStorage.removeItem(
                 "token"
             );
 
-            window.location.href =
-                "login.html";
+            addMsg(
+                "Your session has expired. Please login again.",
+                "bot"
+            );
+
+            setTimeout(() => {
+
+                window.location.href =
+                    "login.html";
+
+            }, 1200);
 
             return;
         }
@@ -1062,7 +1197,7 @@ async function sendMessage() {
             removeTyping();
 
             addMsg(
-                "Server is unavailable right now. Please try again.",
+                "The server is unavailable right now. Please try again in a moment.",
                 "bot"
             );
 
@@ -1079,10 +1214,10 @@ async function sendMessage() {
 
         const reply =
             data.reply ||
-            "No response received.";
+            "Sorry, I couldn't generate a response.";
 
 
-        /* MAIN ANSWER */
+        /* Answer */
 
         addMsg(
             reply,
@@ -1090,29 +1225,52 @@ async function sendMessage() {
         );
 
 
-        /* LANGUAGE */
+        /* Language */
 
         if (data.language) {
 
             addInfo(
                 "🌍 Language: " +
-                data.language.toUpperCase()
+                String(
+                    data.language
+                ).toUpperCase()
             );
         }
 
 
-        /* REFERENCE */
+        /* Reference */
 
         if (data.reference) {
 
-            addInfo(
-                "📖 Reference: " +
+            addReference(
                 data.reference
             );
         }
 
 
-        /* CONFIDENCE */
+        /*
+           Support both possible backend
+           names: reference / references
+        */
+
+        if (
+            !data.reference &&
+            Array.isArray(data.references) &&
+            data.references.length
+        ) {
+
+            data.references.forEach(
+                reference => {
+
+                    addReference(
+                        reference
+                    );
+                }
+            );
+        }
+
+
+        /* Confidence */
 
         if (data.confidence) {
 
@@ -1123,7 +1281,7 @@ async function sendMessage() {
         }
 
 
-        /* SOURCE */
+        /* Source */
 
         if (data.source) {
 
@@ -1134,44 +1292,51 @@ async function sendMessage() {
         }
 
 
-        /* RELATED */
+        /* Related */
 
         showRelated(
             data.related_topics || []
         );
 
 
-        /* VOICE */
+        /* Voice */
 
         speakText(reply);
 
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Chat error:",
+            error
+        );
 
         removeTyping();
 
         addMsg(
-            "Network error. Please check your connection.",
+            "Network error. Please check your internet connection and try again.",
             "bot"
         );
     }
+
 
     scrollBottom();
 }
 
 
-/* =========================
+/* =========================================================
    RELATED TOPICS
-========================= */
+========================================================= */
 
 function showRelated(topics) {
 
     relatedBox.innerHTML = "";
 
-    if (!topics ||
-        topics.length === 0) {
+
+    if (
+        !Array.isArray(topics) ||
+        topics.length === 0
+    ) {
         return;
     }
 
@@ -1182,14 +1347,18 @@ function showRelated(topics) {
     title.className =
         "related-title";
 
-    title.innerText =
+    title.textContent =
         "Related:";
 
-    relatedBox.appendChild(title);
+
+    relatedBox.appendChild(
+        title
+    );
 
 
-    topics.forEach(
-        topic => {
+    topics
+        .slice(0, 8)
+        .forEach(topic => {
 
             const button =
                 document.createElement(
@@ -1199,7 +1368,7 @@ function showRelated(topics) {
             button.className =
                 "related-btn";
 
-            button.innerText =
+            button.textContent =
                 topic;
 
 
@@ -1216,24 +1385,17 @@ function showRelated(topics) {
             relatedBox.appendChild(
                 button
             );
-        }
-    );
+        });
 }
 
 
-/* =========================
-   LOAD HISTORY
-========================= */
+/* =========================================================
+   HISTORY
+========================================================= */
 
 async function loadHistory() {
 
-    if (!token) {
-
-        window.location.href =
-            "login.html";
-
-        return;
-    }
+    if (!token) return;
 
 
     try {
@@ -1264,6 +1426,7 @@ async function loadHistory() {
 
 
         if (!response.ok) {
+
             return;
         }
 
@@ -1272,44 +1435,30 @@ async function loadHistory() {
             await response.json();
 
 
-        chatBox.innerHTML = "";
-
-
         if (
             !data.history ||
             data.history.length === 0
         ) {
 
-            chatBox.innerHTML = `
-                <div class="welcome" id="welcome">
-                    <div class="welcome-icon">🕌</div>
-                    <h3>Assalamu Alaikum</h3>
-                    <p>
-                        Ask me about Quran, Hadith,
-                        Salah, Ramadan, Dua or
-                        Islamic guidance.
-                    </p>
-                </div>
-            `;
-
             return;
         }
 
 
-        data.history.forEach(
-            item => {
+        chatBox.innerHTML = "";
 
-                addMsg(
-                    item.question,
-                    "user"
-                );
 
-                addMsg(
-                    item.answer,
-                    "bot"
-                );
-            }
-        );
+        data.history.forEach(item => {
+
+            addMsg(
+                item.question,
+                "user"
+            );
+
+            addMsg(
+                item.answer,
+                "bot"
+            );
+        });
 
 
         scrollBottom();
@@ -1325,15 +1474,15 @@ async function loadHistory() {
 }
 
 
-/* =========================
+/* =========================================================
    CLEAR CHAT
-========================= */
+========================================================= */
 
 async function clearChat() {
 
     if (
         !confirm(
-            "Clear your chat history?"
+            "Are you sure you want to clear your chat history?"
         )
     ) {
         return;
@@ -1342,27 +1491,49 @@ async function clearChat() {
 
     try {
 
-        await fetch(
-            `${API_URL}/clear`,
-            {
-                method: "DELETE",
+        const response =
+            await fetch(
+                `${API_URL}/clear`,
+                {
+                    method: "DELETE",
 
-                headers: {
-                    "Authorization":
-                        "Bearer " + token
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
                 }
-            }
-        );
+            );
+
+
+        if (response.status === 401) {
+
+            localStorage.removeItem(
+                "token"
+            );
+
+            window.location.href =
+                "login.html";
+
+            return;
+        }
 
 
         chatBox.innerHTML = `
             <div class="welcome" id="welcome">
-                <div class="welcome-icon">🕌</div>
-                <h3>Assalamu Alaikum</h3>
+
+                <div class="welcome-icon">
+                    🕌
+                </div>
+
+                <h3>
+                    Chat Cleared
+                </h3>
+
                 <p>
-                    Your chat has been cleared.
-                    Ask me anything about Islam.
+                    Your conversation history
+                    has been cleared.
                 </p>
+
             </div>
         `;
 
@@ -1373,16 +1544,16 @@ async function clearChat() {
     } catch (error) {
 
         addMsg(
-            "Unable to clear chat.",
+            "Unable to clear chat right now.",
             "bot"
         );
     }
 }
 
 
-/* =========================
-   ENTER KEY
-========================= */
+/* =========================================================
+   ENTER
+========================================================= */
 
 function handleEnter(event) {
 
@@ -1397,9 +1568,9 @@ function handleEnter(event) {
 }
 
 
-/* =========================
+/* =========================================================
    VOICE INPUT
-========================= */
+========================================================= */
 
 function startVoice() {
 
@@ -1430,22 +1601,46 @@ function startVoice() {
         false;
 
 
+    recognition.maxAlternatives =
+        1;
+
+
+    recognition.onstart =
+        () => {
+
+            input.placeholder =
+                "Listening...";
+        };
+
+
+    recognition.onend =
+        () => {
+
+            input.placeholder =
+                "Ask something about Islam...";
+        };
+
+
     recognition.onresult =
         event => {
 
-            input.value =
+            const transcript =
                 event.results[0][0]
                     .transcript;
+
+            input.value =
+                transcript;
 
             sendMessage();
         };
 
 
     recognition.onerror =
-        () => {
+        error => {
 
             console.log(
-                "Voice recognition error"
+                "Voice recognition:",
+                error
             );
         };
 
@@ -1454,14 +1649,16 @@ function startVoice() {
 }
 
 
-/* =========================
+/* =========================================================
    VOICE OUTPUT
-========================= */
+========================================================= */
 
 function speakText(text) {
 
-    if (!text ||
-        !window.speechSynthesis) {
+    if (
+        !text ||
+        !window.speechSynthesis
+    ) {
         return;
     }
 
@@ -1476,11 +1673,15 @@ function speakText(text) {
 
 
     speech.lang =
-        "en-US";
+        detectSpeechLanguage(text);
 
 
     speech.rate =
-        0.95;
+        .95;
+
+
+    speech.pitch =
+        1;
 
 
     window.speechSynthesis.speak(
@@ -1489,9 +1690,21 @@ function speakText(text) {
 }
 
 
-/* =========================
-   DARK MODE
-========================= */
+function detectSpeechLanguage(text) {
+
+    if (
+        /[\u0600-\u06FF]/.test(text)
+    ) {
+        return "ar-SA";
+    }
+
+    return "en-US";
+}
+
+
+/* =========================================================
+   THEME
+========================================================= */
 
 function toggleTheme() {
 
@@ -1500,31 +1713,58 @@ function toggleTheme() {
     );
 
 
-    localStorage.setItem(
-        "theme",
+    const isDark =
         document.body.classList.contains(
             "dark"
-        )
+        );
+
+
+    localStorage.setItem(
+        "theme",
+        isDark
             ? "dark"
             : "light"
+    );
+
+
+    updateThemeIcon(
+        isDark
     );
 }
 
 
-if (
-    localStorage.getItem("theme")
-    === "dark"
-) {
+function updateThemeIcon(isDark) {
+
+    themeButton.textContent =
+        isDark
+            ? "☀️"
+            : "🌙";
+}
+
+
+const savedTheme =
+    localStorage.getItem(
+        "theme"
+    );
+
+
+if (savedTheme === "dark") {
 
     document.body.classList.add(
         "dark"
     );
+
+    updateThemeIcon(true);
+
+} else {
+
+    updateThemeIcon(false);
 }
 
 
-/* =========================
+/* =========================================================
    SCROLL
-========================= */
+========================================================= */
 
 function scrollBottom() {
 
@@ -1536,6 +1776,24 @@ function scrollBottom() {
         }
     );
 }
+
+
+/* =========================================================
+   FINAL UI SAFETY
+========================================================= */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        if (
+            window.speechSynthesis
+        ) {
+
+            window.speechSynthesis.cancel();
+        }
+    }
+);
 
 </script>
 
