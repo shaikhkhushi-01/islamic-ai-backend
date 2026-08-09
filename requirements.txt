@@ -1,5 +1,5 @@
 fastapi
-uvicorn[standard]
+uvicorn
 python-dotenv
 python-multipart
 
@@ -9,14 +9,15 @@ bcrypt==4.0.1
 python-jose
 pydantic
 
-groq==0.28.0
+groq
+
 pypdf
 
 sentence-transformers
 faiss-cpu
 
 langdetect
-googletrans==4.0.0
+googletrans-py==4.0.0
 
 numpy
 tqdm
