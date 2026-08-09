@@ -15,6 +15,7 @@ pypdf
 
 sentence-transformers
 faiss-cpu
+rapidfuzz
 
 langdetect
 googletrans-py==4.0.0
