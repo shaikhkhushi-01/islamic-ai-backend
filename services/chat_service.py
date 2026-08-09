@@ -28,21 +28,34 @@ from services.prompt_service import build_prompt
 
 from utils.logger import logger
 
+
 def process_chat(user_msg, current_user):
+
+    # =========================
+    # Query Rewrite
+    # =========================
 
     user_msg = rewrite_query(user_msg)
 
+    # =========================
     # Greeting
+    # =========================
+
     greeting = handle_greeting(user_msg)
 
     if greeting:
         return {
             "reply": greeting,
             "related_topics": [],
+            "references": [],
+            "confidence": "100%",
             "source": "Greeting Engine"
         }
 
+    # =========================
     # Quran Search
+    # =========================
+
     quran_results = search_quran(user_msg)
 
     if quran_results:
@@ -59,10 +72,14 @@ def process_chat(user_msg, current_user):
             "reply": verses,
             "related_topics": [],
             "references": [],
+            "confidence": "100%",
             "source": "Quran Engine"
         }
 
+    # =========================
     # Hadith Search
+    # =========================
+
     hadith_results = search_hadith(user_msg)
 
     if hadith_results:
@@ -79,104 +96,197 @@ def process_chat(user_msg, current_user):
             "reply": response,
             "related_topics": [],
             "references": [],
+            "confidence": "100%",
             "source": "Hadith Engine"
         }
+
+    # =========================
+    # Logging
+    # =========================
 
     logger.info(f"Question : {user_msg}")
 
     session_id = str(current_user["id"])
 
-    follow_up_patterns = [
-    r"^how many",
-    r"^why",
-    r"^how",
-    r"^when",
-    r"^where",
-    r"^tell me more",
-    r"^explain more",
-    r"^what about",
-    r"^its",
-    r"^their",
-    r"^them"
-]
+    # =========================
+    # Follow-up Detection
+    # =========================
 
-is_follow_up = any(
-    re.match(pattern, user_msg.lower())
-    for pattern in follow_up_patterns
-)
+    follow_up_patterns = [
+        r"^how many",
+        r"^why",
+        r"^how",
+        r"^when",
+        r"^where",
+        r"^tell me more",
+        r"^explain more",
+        r"^what about",
+        r"^its",
+        r"^it's",
+        r"^their",
+        r"^them",
+        r"^that",
+        r"^this",
+        r"^those",
+        r"^these"
+    ]
+
+    is_follow_up = any(
+        re.match(pattern, user_msg.lower())
+        for pattern in follow_up_patterns
+    )
+
+    # =========================
+    # Retrieval
+    # =========================
 
     retrieval = retrieve_context(
-    user_msg,
-    session_id
-)
+        user_msg,
+        session_id
+    )
 
-context = retrieval["context"]
+    context = retrieval.get("context", "")
+    related = retrieval.get("related", [])
+    topic = retrieval.get("topic")
 
-related = retrieval["related"]
+    # =========================
+    # Fallback Database Search
+    # =========================
 
-topic = retrieval["topic"]
-    topic = result["topic"]
+    if not context:
 
-else:
+        result = search_database(
+            user_msg,
+            session_id
+        )
 
-    semantic = semantic_search(user_msg)
+        if result:
 
-    if not semantic:
+            context = result.get("text", "")
+            related = result.get("related", [])
+            topic = result.get("topic")
+
+    # =========================
+    # Semantic Search Fallback
+    # =========================
+
+    if not context:
+
+        semantic = semantic_search(user_msg)
+
+        if semantic:
+
+            if isinstance(semantic, str):
+                context = semantic
+                related = []
+                topic = None
+
+            elif isinstance(semantic, list):
+
+                context_parts = []
+
+                for item in semantic:
+
+                    if isinstance(item, dict):
+
+                        item_topic = item.get("topic", "")
+                        item_text = item.get("text", "")
+
+                        context_parts.append(
+                            f"Topic: {item_topic}\n"
+                            f"{item_text}"
+                        )
+
+                context = "\n\n".join(context_parts)
+
+                if semantic and isinstance(semantic[0], dict):
+                    topic = semantic[0].get("topic")
+
+                related = []
+
+    # =========================
+    # No Knowledge Found
+    # =========================
+
+    if not context:
 
         return {
-            "reply": "Sorry, I couldn't find authentic Islamic knowledge related to your question.",
+            "reply": (
+                "Sorry, I couldn't find authentic Islamic knowledge "
+                "related to your question."
+            ),
             "related_topics": [],
             "references": [],
+            "confidence": "20%",
             "source": "Knowledge Base"
         }
 
-    context = ""
+    # =========================
+    # Context Validation
+    # =========================
 
-    for item in semantic:
+    if not has_enough_context(context):
 
-        context += (
-            f"Topic: {item['topic']}\n"
-            f"{item['text']}\n\n"
-        )
+        return {
+            "reply": (
+                "Sorry, I couldn't find enough authentic "
+                "Islamic evidence to answer this question."
+            ),
+            "related_topics": related,
+            "references": [],
+            "confidence": "20%",
+            "source": "Knowledge Base"
+        }
 
-    related = []
-    topic = semantic[0]["topic"]
+    # =========================
+    # Prompt Engineering
+    # =========================
 
-if not has_enough_context(context):
-
-    return {
-        "reply": (
-            "Sorry, I couldn't find enough authentic "
-            "Islamic evidence to answer this question."
-        ),
-        "related_topics": [],
-        "reference": "",
-        "confidence": "20%",
-        "source": "Knowledge Base"
-    }
-
-prompt = build_prompt(
-    user_msg,
-    context
-)
-
-reply = ask_groq(prompt)
-
-if not validate_response(reply):
-
-    reply = (
-        "Sorry, I couldn't verify this response "
-        "from authentic Islamic sources."
+    prompt = build_prompt(
+        user_msg,
+        context
     )
+
+    # =========================
+    # AI Response
+    # =========================
+
+    reply = ask_groq(prompt)
+
+    # =========================
+    # Hallucination / Safety Guard
+    # =========================
+
+    if not validate_response(reply):
+
+        reply = (
+            "Sorry, I couldn't verify this response "
+            "from authentic Islamic sources."
+        )
 
     logger.info(f"Answer : {reply}")
 
-    # Extract Quran/Hadith references from AI reply
-    reference = get_reference(topic)
+    # =========================
+    # Citation
+    # =========================
+
+    reference = ""
+
+    if topic:
+        reference = get_reference(topic)
+
+    # =========================
+    # Confidence
+    # =========================
+
     confidence = calculate_confidence(context)
 
-    # Save chat history
+    # =========================
+    # Save Chat History
+    # =========================
+
     conn = sqlite3.connect(DB_PATH)
+
     cursor = conn.cursor()
 
     cursor.execute(
@@ -203,16 +313,14 @@ if not validate_response(reply):
     conn.commit()
     conn.close()
 
+    # =========================
+    # Final Response
+    # =========================
+
     return {
-
-    "reply": reply,
-
-    "related_topics": related,
-
-    "reference": reference,
-
-    "confidence": confidence,
-
-    "source": context[:150]
-
-}
+        "reply": reply,
+        "related_topics": related,
+        "reference": reference,
+        "confidence": confidence,
+        "source": context[:150]
+    }
