@@ -16,7 +16,7 @@ sentence-transformers
 faiss-cpu
 
 langdetect
-googletrans==4.0.0rc1
+googletrans==4.0.0
 
 numpy
 tqdm
