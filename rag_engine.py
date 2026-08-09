@@ -1,43 +1,104 @@
 import sqlite3
-import faiss
-import numpy as np
-from sentence_transformers import SentenceTransformer
+import re
+from rapidfuzz import fuzz
 
 from database import DB_PATH
 
 
-model = None
+# =========================================================
+# LIGHTWEIGHT RAG ENGINE
+# =========================================================
+
 index = None
 texts = []
 
 
-def get_model():
-    global model
+def normalize_text(text):
+    """
+    Normalize text for lightweight semantic matching.
+    """
 
-    if model is None:
-        model = SentenceTransformer("all-MiniLM-L6-v2")
+    if not text:
+        return ""
 
-    return model
+    text = text.lower()
+
+    text = re.sub(
+        r"[^\w\s]",
+        " ",
+        text
+    )
+
+    text = re.sub(
+        r"\s+",
+        " ",
+        text
+    )
+
+    return text.strip()
+
+
+def get_words(text):
+    return set(
+        normalize_text(text).split()
+    )
+
+
+def calculate_score(query, text):
+
+    query_words = get_words(query)
+    text_words = get_words(text)
+
+    if not query_words or not text_words:
+        return 0
+
+    # Word overlap
+    overlap = len(
+        query_words.intersection(text_words)
+    )
+
+    overlap_score = (
+        overlap / len(query_words)
+    ) * 100
+
+    # Fuzzy similarity
+    fuzzy_score = fuzz.token_set_ratio(
+        query,
+        text
+    )
+
+    # Combined score
+    score = (
+        overlap_score * 0.65
+        +
+        fuzzy_score * 0.35
+    )
+
+    return score
 
 
 def build_index():
 
     conn = sqlite3.connect(DB_PATH)
+
     cursor = conn.cursor()
 
     cursor.execute(
         """
-        SELECT topic, detailed_content, content
+        SELECT topic,
+               detailed_content,
+               content
         FROM knowledge
         """
     )
 
     rows = cursor.fetchall()
+
     conn.close()
 
     chunks = []
 
-    CHUNK_SIZE = 500
+    CHUNK_SIZE = 700
 
     for topic, detailed, content in rows:
 
@@ -46,39 +107,29 @@ def build_index():
         if not text:
             continue
 
-        for i in range(0, len(text), CHUNK_SIZE):
+        text = str(text)
 
-            chunk = text[i:i + CHUNK_SIZE]
+        for i in range(
+            0,
+            len(text),
+            CHUNK_SIZE
+        ):
 
-            chunks.append({
-                "topic": topic,
-                "text": chunk
-            })
+            chunk = text[
+                i:i + CHUNK_SIZE
+            ]
 
-    if not chunks:
-        return None, []
+            if not chunk.strip():
+                continue
 
-    embedding_model = get_model()
+            chunks.append(
+                {
+                    "topic": topic,
+                    "text": chunk
+                }
+            )
 
-    texts_only = [item["text"] for item in chunks]
-
-    embeddings = embedding_model.encode(
-        texts_only,
-        convert_to_numpy=True
-    )
-
-    embeddings = np.asarray(
-        embeddings,
-        dtype="float32"
-    )
-
-    new_index = faiss.IndexFlatL2(
-        embeddings.shape[1]
-    )
-
-    new_index.add(embeddings)
-
-    return new_index, chunks
+    return None, chunks
 
 
 def initialize_rag():
@@ -86,7 +137,7 @@ def initialize_rag():
     global index
     global texts
 
-    if index is None:
+    if not texts:
 
         index, texts = build_index()
 
@@ -98,41 +149,44 @@ def semantic_search(query):
     global index
     global texts
 
-    if index is None:
+    if not texts:
 
         initialize_rag()
 
-    if index is None or not texts:
+    if not texts:
 
         return []
 
-    embedding_model = get_model()
+    scored_results = []
 
-    query_embedding = embedding_model.encode(
-        [query],
-        convert_to_numpy=True
-    )
+    for item in texts:
 
-    query_embedding = np.asarray(
-        query_embedding,
-        dtype="float32"
-    )
+        score = calculate_score(
+            query,
+            item["text"]
+        )
 
-    k = min(3, len(texts))
-
-    distances, indices = index.search(
-        query_embedding,
-        k
-    )
-
-    results = []
-
-    for idx in indices[0]:
-
-        if idx < 0 or idx >= len(texts):
+        if score <= 0:
             continue
 
-        results.append(texts[idx])
+        scored_results.append(
+            (
+                score,
+                item
+            )
+        )
+
+    scored_results.sort(
+        key=lambda x: x[0],
+        reverse=True
+    )
+
+    # Return top 3 results
+    results = [
+        item
+        for score, item
+        in scored_results[:3]
+    ]
 
     return results
 
@@ -145,4 +199,4 @@ def refresh_index():
     index = None
     texts = []
 
-    index, texts = build_index()
+    initialize_rag()
