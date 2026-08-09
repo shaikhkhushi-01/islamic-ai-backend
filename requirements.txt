@@ -13,8 +13,6 @@ groq
 
 pypdf
 
-sentence-transformers
-faiss-cpu
 rapidfuzz
 
 langdetect
