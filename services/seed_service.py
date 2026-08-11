@@ -123,5 +123,64 @@ Even Prophet Muhammad ﷺ faced sadness (Year of Sorrow).
                 )
             )
 
+# =========================================================
+# CREATE / UPDATE DEFAULT ADMIN
+# =========================================================
+
+from database import hash_password
+
+admin_email = "admin@gmail.com"
+admin_username = "admin"
+admin_password = "12345678"
+
+hashed_password = hash_password(admin_password)
+
+cursor.execute(
+    "SELECT id FROM users WHERE email=?",
+    (admin_email,)
+)
+
+existing_admin = cursor.fetchone()
+
+if existing_admin:
+
+    cursor.execute(
+        """
+        UPDATE users
+        SET
+            username = ?,
+            password = ?,
+            role = ?
+        WHERE email = ?
+        """,
+        (
+            admin_username,
+            hashed_password,
+            "admin",
+            admin_email
+        )
+    )
+
+else:
+
+    cursor.execute(
+        """
+        INSERT INTO users
+        (
+            username,
+            email,
+            password,
+            role
+        )
+        VALUES (?, ?, ?, ?)
+        """,
+        (
+            admin_username,
+            admin_email,
+            hashed_password,
+            "admin"
+        )
+    )
+    
     conn.commit()
     conn.close()
