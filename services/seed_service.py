@@ -1,5 +1,6 @@
 import sqlite3
-from database import DB_PATH
+
+from database import DB_PATH, hash_password
 
 
 def seed_data():
@@ -11,10 +12,11 @@ def seed_data():
 
         # -------- BASIC KNOWLEDGE --------
 
-        ("prayer",
- "🕌 Salah is one of the Five Pillars of Islam.",
- "knowledge",
- """🕌 WHY WE PRAY (SALAH)
+        (
+            "prayer",
+            "🕌 Salah is one of the Five Pillars of Islam.",
+            "knowledge",
+            """🕌 WHY WE PRAY (SALAH)
 
 Salah is a direct connection between a servant and Allah.
 
@@ -30,7 +32,8 @@ Pray slowly, understand meanings, and treat it like a meeting with Allah.
 🤲 Remember:
 Prayer is not a burden — it is spiritual oxygen.
 """
-),
+        ),
+
         ("zakat", "💰 Zakat is 2.5% of yearly savings given to the needy.", "knowledge"),
         ("fasting", "🌙 Fasting in Ramadan teaches patience and self-control.", "knowledge"),
         ("hajj", "🕋 Hajj is pilgrimage to Makkah, required once if financially able.", "knowledge"),
@@ -62,12 +65,24 @@ Prayer is not a burden — it is spiritual oxygen.
         ("qiyamah", "⏳ Qiyamah is the Day of Judgment.", "knowledge"),
 
         # -------- LIFE GUIDANCE --------
-        ("music", "🎵 Some scholars consider music haram, others allow soft nasheeds without instruments. Avoid anything that leads to sin.", "guidance"),
-        ("stress", "🧠 When stressed, remember Allah, pray 2 rakah, and make dua. Allah says 'Verily in remembrance of Allah do hearts find rest.'", "guidance"),
-        ("depression",
- "💙 Islam encourages seeking help and making dua.",
- "guidance",
- """💙 FEELING DEPRESSED IN ISLAM
+
+        (
+            "music",
+            "🎵 Some scholars consider music haram, others allow soft nasheeds without instruments. Avoid anything that leads to sin.",
+            "guidance"
+        ),
+
+        (
+            "stress",
+            "🧠 When stressed, remember Allah, pray 2 rakah, and make dua. Allah says 'Verily in remembrance of Allah do hearts find rest.'",
+            "guidance"
+        ),
+
+        (
+            "depression",
+            "💙 Islam encourages seeking help and making dua.",
+            "guidance",
+            """💙 FEELING DEPRESSED IN ISLAM
 
 Islam acknowledges emotional pain.
 
@@ -84,16 +99,55 @@ Even Prophet Muhammad ﷺ faced sadness (Year of Sorrow).
 
 🤲 Allah tests those He loves. Your pain is not ignored.
 """
-),
-        ("travel prayer", "✈️ While travelling, you can shorten 4 rakah prayers to 2 rakah (Qasr).", "guidance"),
-        ("forgiveness", "🤲 Allah is Most Forgiving. Sincerely repent and avoid repeating the sin.", "guidance"),
-        ("patience", "⏳ Allah loves those who are patient (Sabr). Hardships remove sins.", "guidance"),
-        ("gratitude", "🌼 If you are grateful, Allah will increase you (Quran 14:7).", "guidance"),
-        ("halal income", "💼 Earning halal sustains blessings in life. Avoid interest (riba) and fraud.", "guidance"),
-        ("parents", "👨‍👩‍👧 Islam commands kindness to parents after worship of Allah.", "guidance"),
-        ("anger", "🔥 Control anger. Prophet ﷺ said: The strong person is the one who controls himself when angry.", "guidance"),
+        ),
+
+        (
+            "travel prayer",
+            "✈️ While travelling, you can shorten 4 rakah prayers to 2 rakah (Qasr).",
+            "guidance"
+        ),
+
+        (
+            "forgiveness",
+            "🤲 Allah is Most Forgiving. Sincerely repent and avoid repeating the sin.",
+            "guidance"
+        ),
+
+        (
+            "patience",
+            "⏳ Allah loves those who are patient (Sabr). Hardships remove sins.",
+            "guidance"
+        ),
+
+        (
+            "gratitude",
+            "🌼 If you are grateful, Allah will increase you (Quran 14:7).",
+            "guidance"
+        ),
+
+        (
+            "halal income",
+            "💼 Earning halal sustains blessings in life. Avoid interest (riba) and fraud.",
+            "guidance"
+        ),
+
+        (
+            "parents",
+            "👨‍👩‍👧 Islam commands kindness to parents after worship of Allah.",
+            "guidance"
+        ),
+
+        (
+            "anger",
+            "🔥 Control anger. Prophet ﷺ said: The strong person is the one who controls himself when angry.",
+            "guidance"
+        ),
     ]
-    
+
+    # =========================================================
+    # INSERT KNOWLEDGE
+    # =========================================================
+
     for item in data:
 
         if len(item) == 4:
@@ -112,7 +166,12 @@ Even Prophet Muhammad ﷺ faced sadness (Year of Sorrow).
             cursor.execute(
                 """
                 INSERT INTO knowledge
-                (topic, content, type, detailed_content)
+                (
+                    topic,
+                    content,
+                    type,
+                    detailed_content
+                )
                 VALUES (?, ?, ?, ?)
                 """,
                 (
@@ -123,64 +182,66 @@ Even Prophet Muhammad ﷺ faced sadness (Year of Sorrow).
                 )
             )
 
-# =========================================================
-# CREATE / UPDATE DEFAULT ADMIN
-# =========================================================
+    # =========================================================
+    # CREATE / UPDATE DEFAULT ADMIN
+    # =========================================================
 
-from database import hash_password
+    admin_email = "admin@gmail.com"
+    admin_username = "admin"
+    admin_password = "12345678"
 
-admin_email = "admin@gmail.com"
-admin_username = "admin"
-admin_password = "12345678"
-
-hashed_password = hash_password(admin_password)
-
-cursor.execute(
-    "SELECT id FROM users WHERE email=?",
-    (admin_email,)
-)
-
-existing_admin = cursor.fetchone()
-
-if existing_admin:
+    hashed_password = hash_password(admin_password)
 
     cursor.execute(
-        """
-        UPDATE users
-        SET
-            username = ?,
-            password = ?,
-            role = ?
-        WHERE email = ?
-        """,
-        (
-            admin_username,
-            hashed_password,
-            "admin",
-            admin_email
-        )
+        "SELECT id FROM users WHERE email=?",
+        (admin_email,)
     )
 
-else:
+    existing_admin = cursor.fetchone()
 
-    cursor.execute(
-        """
-        INSERT INTO users
-        (
-            username,
-            email,
-            password,
-            role
+    if existing_admin:
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET
+                username = ?,
+                password = ?,
+                role = ?
+            WHERE email = ?
+            """,
+            (
+                admin_username,
+                hashed_password,
+                "admin",
+                admin_email
+            )
         )
-        VALUES (?, ?, ?, ?)
-        """,
-        (
-            admin_username,
-            admin_email,
-            hashed_password,
-            "admin"
+
+    else:
+
+        cursor.execute(
+            """
+            INSERT INTO users
+            (
+                username,
+                email,
+                password,
+                role
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                admin_username,
+                admin_email,
+                hashed_password,
+                "admin"
+            )
         )
-    )
-    
+
+    # =========================================================
+    # SAVE
+    # =========================================================
+
     conn.commit()
     conn.close()
